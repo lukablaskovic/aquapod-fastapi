@@ -23,6 +23,11 @@ def root():
 
 @app.get("/sqlaclhemy")
 def test(db: Session = Depends(get_db)):
-    return {"status": "success"}
+    aquapods = []
+    try:
+        aquapods = db.query(models.AquaPod).all()
+    except Exception as e:
+        print(e)
+    return {"data": aquapods}
 
 # Run with uvicorn app.main:app --reload

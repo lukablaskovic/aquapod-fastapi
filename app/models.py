@@ -25,6 +25,16 @@ class AquaPod(Base):
     okolis = relationship(
         "Okolis", back_populates="aquapod", uselist=False)
 
+    # Aquapod should have many audit records
+    pumpa_audit = relationship(
+        "PumpaAudit", back_populates="aquapod")
+    akumulator_audit = relationship(
+        "AkumulatorAudit", back_populates="aquapod")
+    solarni_panel_audit = relationship(
+        "SolarniPanelAudit", back_populates="aquapod")
+    okolis_audit = relationship(
+        "OkolisAudit", back_populates="aquapod")
+
 
 class Unit(Base):
     __tablename__ = "unit"
@@ -40,7 +50,7 @@ class VideoCam(Base):
     __tablename__ = "video_cam"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship("Aquapod", back_populates="video_cam")
+    aquapod = relationship("AquaPod", back_populates="video_cam")
 
     is_on = Column(Boolean, nullable=False)
     pan = Column(Float, nullable=False)
@@ -51,7 +61,8 @@ class GPSPosition(Base):
     __tablename__ = "gps_position"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship("Aquapod", back_populates="gps_position")
+    aquapod = relationship(
+        "AquaPod", back_populates="gps_position", uselist=False)
 
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
@@ -72,7 +83,8 @@ class KosZaSmece(Base):
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
     napunjenost = Column(Float, nullable=False)
 
-    aquapod = relationship("Aquapod", back_populates="kos_za_smece")
+    aquapod = relationship(
+        "AquaPod", back_populates="kos_za_smece", uselist=False)
 
 
 # Sensors
@@ -82,7 +94,7 @@ class Pumpa(Base):
     __tablename__ = "pumpa"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship("Aquapod", back_populates="pumpa")
+    aquapod = relationship("AquaPod", back_populates="pumpa", uselist=False)
 
     broj_okretaja = Column(Integer, nullable=False)
     total_sati_rada = Column(Integer, nullable=False)
@@ -97,7 +109,8 @@ class Akumulator(Base):
     __tablename__ = "akumulator"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship("Aquapod", back_populates="akumulator")
+    aquapod = relationship(
+        "AquaPod", back_populates="akumulator", uselist=False)
 
     struja_punjenja = Column(Float, nullable=False)
     struja_praznjenja = Column(Float, nullable=False)
@@ -124,7 +137,8 @@ class SolarniPanel(Base):
     __tablename__ = "solarni_panel"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship("Aquapod", back_populates="solarni_panel")
+    aquapod = relationship(
+        "AquaPod", back_populates="solarni_panel", uselist=False)
 
     insolacija = Column(Float, nullable=False)
     napon = Column(Float, nullable=False)
@@ -147,7 +161,7 @@ class Okolis(Base):
     __tablename__ = "okolis"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship("Aquapod", back_populates="okolis")
+    aquapod = relationship("AquaPod", back_populates="okolis", uselist=False)
 
     dubina_mora = Column(Float, nullable=False)
     temp_mora = Column(Float, nullable=False)
@@ -182,8 +196,9 @@ class Okolis(Base):
 class PumpaAudit(Base):
     __tablename__ = "pumpa_audit"
     id = Column(Integer, primary_key=True, index=True)
-    aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship("Aquapod", back_populates="pumpa")
+    aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
+    aquapod = relationship(
+        "AquaPod", back_populates="pumpa_audit")
 
     broj_okretaja = Column(Integer, nullable=False)
     total_sati_rada = Column(Integer, nullable=False)
@@ -200,8 +215,9 @@ class PumpaAudit(Base):
 class AkumulatorAudit(Base):
     __tablename__ = "akumulator_audit"
     id = Column(Integer, primary_key=True, index=True)
-    aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship("Aquapod", back_populates="akumulator")
+    aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
+    aquapod = relationship(
+        "AquaPod", back_populates="akumulator_audit")
 
     struja_punjenja = Column(Float, nullable=False)
     struja_praznjenja = Column(Float, nullable=False)
@@ -230,8 +246,9 @@ class AkumulatorAudit(Base):
 class SolarniPanelAudit(Base):
     __tablename__ = "solarni_panel_audit"
     id = Column(Integer, primary_key=True, index=True)
-    aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship("Aquapod", back_populates="solarni_panel")
+    aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
+    aquapod = relationship(
+        "AquaPod", back_populates="solarni_panel_audit")
 
     insolacija = Column(Float, nullable=False)
     napon = Column(Float, nullable=False)
@@ -256,8 +273,9 @@ class SolarniPanelAudit(Base):
 class OkolisAudit(Base):
     __tablename__ = "okolis_audit"
     id = Column(Integer, primary_key=True, index=True)
-    aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship("Aquapod", back_populates="okolis")
+    aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
+    aquapod = relationship(
+        "AquaPod", back_populates="okolis_audit")
 
     dubina_mora = Column(Float, nullable=False)
     temp_mora = Column(Float, nullable=False)
