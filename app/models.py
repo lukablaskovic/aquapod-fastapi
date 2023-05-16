@@ -8,45 +8,45 @@ from .db import Base
 class AquaPod(Base):
     __tablename__ = "aquapod"
     id = Column(Integer, primary_key=True, index=True)
-    ime = Column(String, nullable=False)
+    name = Column(String, nullable=False)
 
-    video_cam = relationship(
-        "VideoCam", back_populates="aquapod", uselist=False)
+    video_camera = relationship(
+        "VideoCamera", back_populates="aquapod", uselist=False)
     gps_position = relationship(
         "GPSPosition", back_populates="aquapod", uselist=False)
-    kos_za_smece = relationship(
-        "KosZaSmece", back_populates="aquapod", uselist=False)
-    pumpa = relationship(
-        "Pumpa", back_populates="aquapod", uselist=False)
-    akumulator = relationship(
-        "Akumulator", back_populates="aquapod", uselist=False)
-    solarni_panel = relationship(
-        "SolarniPanel", back_populates="aquapod", uselist=False)
-    okolis = relationship(
-        "Okolis", back_populates="aquapod", uselist=False)
+    trash_container = relationship(
+        "TrashContainer", back_populates="aquapod", uselist=False)
+    pump = relationship(
+        "Pump", back_populates="aquapod", uselist=False)
+    battery = relationship(
+        "Battery", back_populates="aquapod", uselist=False)
+    solar_panel = relationship(
+        "SolarPanel", back_populates="aquapod", uselist=False)
+    environment = relationship(
+        "Environment", back_populates="aquapod", uselist=False)
 
     # Aquapod should have many audit records
-    pumpa_audit = relationship(
-        "PumpaAudit", back_populates="aquapod")
-    akumulator_audit = relationship(
-        "AkumulatorAudit", back_populates="aquapod")
-    solarni_panel_audit = relationship(
-        "SolarniPanelAudit", back_populates="aquapod")
-    okolis_audit = relationship(
-        "OkolisAudit", back_populates="aquapod")
+    pump_audit = relationship(
+        "PumpAudit", back_populates="aquapod")
+    battery_audit = relationship(
+        "BatteryAudit", back_populates="aquapod")
+    solar_panel_audit = relationship(
+        "SolarPanelAudit", back_populates="aquapod")
+    environment_audit = relationship(
+        "EnvironmentAudit", back_populates="aquapod")
 
 
 class Unit(Base):
     __tablename__ = "unit"
     id = Column(Integer, primary_key=True, index=True)
-    naziv = Column(String, nullable=False)
-    kratica = Column(String, nullable=False)
-    opis = Column(String)
+    name = Column(String, nullable=False)
+    symbol = Column(String, nullable=False)
+    description = Column(String)
 
 # General
 
 
-class VideoCam(Base):
+class VideoCamera(Base):
     __tablename__ = "video_cam"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
@@ -77,232 +77,232 @@ class GPSPosition(Base):
                        nullable=False, server_default=text("NOW()"))
 
 
-class KosZaSmece(Base):
-    __tablename__ = "kos_za_smece"
+class TrashContainer(Base):
+    __tablename__ = "trash_container"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    napunjenost = Column(Float, nullable=False)
+    garbage_filled = Column(Float, nullable=False)
 
     aquapod = relationship(
-        "AquaPod", back_populates="kos_za_smece", uselist=False)
+        "AquaPod", back_populates="trash_container", uselist=False)
 
 
 # Sensors
 
-
-class Pumpa(Base):
-    __tablename__ = "pumpa"
+class Pump(Base):
+    __tablename__ = "pump"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship("AquaPod", back_populates="pumpa", uselist=False)
+    aquapod = relationship("AquaPod", back_populates="pump", uselist=False)
 
-    broj_okretaja = Column(Integer, nullable=False)
-    total_sati_rada = Column(Integer, nullable=False)
-    stanje_alarma = Column(String)
+    speed = Column(Integer, nullable=False)
+    working_time = Column(Float, nullable=False)
+    alarm_status = Column(String)
 
-    broj_okretaja_unit_id = Column(Integer, ForeignKey("unit.id"))
-    broj_okretaja_unit = relationship(
-        "Unit", foreign_keys=[broj_okretaja_unit_id])
-
-
-class Akumulator(Base):
-    __tablename__ = "akumulator"
-    id = Column(Integer, primary_key=True, index=True)
-    aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship(
-        "AquaPod", back_populates="akumulator", uselist=False)
-
-    struja_punjenja = Column(Float, nullable=False)
-    struja_praznjenja = Column(Float, nullable=False)
-    napon = Column(Float, nullable=False)
-    kapacitet = Column(Float, nullable=False)
-    broj_ciklusa = Column(Integer, nullable=False)
-
-    struja_punjenja_unit_id = Column(Integer, ForeignKey("unit.id"))
-    struja_praznjenja_unit_id = Column(Integer, ForeignKey("unit.id"))
-    napon_unit_id = Column(Integer, ForeignKey("unit.id"))
-    kapacitet_unit_id = Column(Integer, ForeignKey("unit.id"))
-
-    struja_punjenja_unit = relationship(
-        "Unit", foreign_keys=[struja_punjenja_unit_id])
-    struja_praznjenja_unit = relationship(
-        "Unit", foreign_keys=[struja_praznjenja_unit_id])
-    napon_unit = relationship(
-        "Unit", foreign_keys=[napon_unit_id])
-    kapacitet_unit = relationship(
-        "Unit", foreign_keys=[kapacitet_unit_id])
+    speed_unit_id = Column(Integer, ForeignKey("unit.id"))
+    speed_unit = relationship(
+        "Unit", foreign_keys=[speed_unit_id])
 
 
-class SolarniPanel(Base):
-    __tablename__ = "solarni_panel"
+class Battery(Base):
+    __tablename__ = "battery"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
     aquapod = relationship(
-        "AquaPod", back_populates="solarni_panel", uselist=False)
+        "AquaPod", back_populates="battery", uselist=False)
 
-    insolacija = Column(Float, nullable=False)
-    napon = Column(Float, nullable=False)
-    iskoristivost = Column(Float, nullable=False)
-    total_sati_rada = Column(Integer, nullable=False)
+    charge_current = Column(Float, nullable=False)
+    discharge_current = Column(Float, nullable=False)
+    voltage = Column(Float, nullable=False)
+    capacity = Column(Float, nullable=False)
+    cycle_count = Column(Integer, nullable=False)
 
-    insolacija_unit_id = Column(Integer, ForeignKey("unit.id"))
-    napon_unit_id = Column(Integer, ForeignKey("unit.id"))
-    iskoristivost_unit_id = Column(Integer, ForeignKey("unit.id"))
+    charge_current_unit_id = Column(Integer, ForeignKey("unit.id"))
+    discharge_current_unit_id = Column(Integer, ForeignKey("unit.id"))
+    voltage_unit_id = Column(Integer, ForeignKey("unit.id"))
+    capacity_unit_id = Column(Integer, ForeignKey("unit.id"))
 
-    insolacija_unit = relationship(
-        "Unit", foreign_keys=[insolacija_unit_id])
-    napon_unit = relationship(
-        "Unit", foreign_keys=[napon_unit_id])
-    iskoristivost_unit = relationship(
-        "Unit", foreign_keys=[iskoristivost_unit_id])
+    charge_current_unit = relationship(
+        "Unit", foreign_keys=[charge_current_unit_id])
+    discharge_current_unit = relationship(
+        "Unit", foreign_keys=[discharge_current_unit_id])
+    voltage_unit = relationship(
+        "Unit", foreign_keys=[voltage_unit_id])
+    capacity_unit = relationship(
+        "Unit", foreign_keys=[capacity_unit_id])
 
 
-class Okolis(Base):
-    __tablename__ = "okolis"
+class SolarPanel(Base):
+    __tablename__ = "solar_panel"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship("AquaPod", back_populates="okolis", uselist=False)
+    aquapod = relationship(
+        "AquaPod", back_populates="solar_panel", uselist=False)
 
-    dubina_mora = Column(Float, nullable=False)
-    temp_mora = Column(Float, nullable=False)
-    ph_mora = Column(Float, nullable=False)
-    smjer_vjetra = Column(Float, nullable=False)
-    snaga_vjetra = Column(Float, nullable=False)
-    temp_zraka = Column(Float, nullable=False)
+    insolation = Column(Float, nullable=False)
+    voltage = Column(Float, nullable=False)
+    utilization = Column(Float, nullable=False)
+    working_time = Column(Float, nullable=False)
 
-    dubina_mora_unit_id = Column(Integer, ForeignKey("unit.id"))
-    temp_mora_unit_id = Column(Integer, ForeignKey("unit.id"))
-    ph_mora_unit_id = Column(Integer, ForeignKey("unit.id"))
-    smjer_vjetra_unit_id = Column(Integer, ForeignKey("unit.id"))
-    snaga_vjetra_unit_id = Column(Integer, ForeignKey("unit.id"))
-    temp_zraka_unit_id = Column(Integer, ForeignKey("unit.id"))
+    insolation_unit_id = Column(Integer, ForeignKey("unit.id"))
+    voltage_unit_id = Column(Integer, ForeignKey("unit.id"))
+    utilization_unit_id = Column(Integer, ForeignKey("unit.id"))
 
-    dubina_mora_unit = relationship(
-        "Unit", foreign_keys=[dubina_mora_unit_id])
-    temp_mora_unit = relationship(
-        "Unit", foreign_keys=[temp_mora_unit_id])
-    ph_mora_unit = relationship(
-        "Unit", foreign_keys=[ph_mora_unit_id])
-    smjer_vjetra_unit = relationship(
-        "Unit", foreign_keys=[smjer_vjetra_unit_id])
-    snaga_vjetra_unit = relationship(
-        "Unit", foreign_keys=[snaga_vjetra_unit_id])
-    temp_zraka_unit = relationship(
-        "Unit", foreign_keys=[temp_zraka_unit_id])
+    insolation_unit = relationship(
+        "Unit", foreign_keys=[insolation_unit_id])
+    voltage_unit = relationship(
+        "Unit", foreign_keys=[voltage_unit_id])
+    utilization_unit = relationship(
+        "Unit", foreign_keys=[utilization_unit_id])
+
+
+class Environment(Base):
+    __tablename__ = "environment"
+    id = Column(Integer, primary_key=True, index=True)
+    aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
+    aquapod = relationship(
+        "AquaPod", back_populates="environment", uselist=False)
+
+    sea_depth = Column(Float, nullable=False)
+    sea_temperature = Column(Float, nullable=False)
+    sea_ph = Column(Float, nullable=False)
+    wind_direction = Column(Float, nullable=False)
+    wind_power = Column(Float, nullable=False)
+    air_temperature = Column(Float, nullable=False)
+
+    sea_depth_unit_id = Column(Integer, ForeignKey("unit.id"))
+    sea_temperature_unit_id = Column(Integer, ForeignKey("unit.id"))
+    sea_ph_unit_id = Column(Integer, ForeignKey("unit.id"))
+    wind_direction_unit_id = Column(Integer, ForeignKey("unit.id"))
+    wind_power_unit_id = Column(Integer, ForeignKey("unit.id"))
+    air_temperature_unit_id = Column(Integer, ForeignKey("unit.id"))
+
+    sea_depth_unit = relationship(
+        "Unit", foreign_keys=[sea_depth_unit_id])
+    sea_temperature_unit = relationship(
+        "Unit", foreign_keys=[sea_temperature_unit_id])
+    sea_ph_unit = relationship(
+        "Unit", foreign_keys=[sea_ph_unit_id])
+    wind_direction_unit = relationship(
+        "Unit", foreign_keys=[wind_direction_unit_id])
+    wind_power_unit = relationship(
+        "Unit", foreign_keys=[wind_power_unit_id])
+    air_temperature_unit = relationship(
+        "Unit", foreign_keys=[air_temperature_unit_id])
 
 # Audit tables
 
 
-class PumpaAudit(Base):
-    __tablename__ = "pumpa_audit"
+class PumpAudit(Base):
+    __tablename__ = "pump_audit"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
     aquapod = relationship(
-        "AquaPod", back_populates="pumpa_audit")
+        "AquaPod", back_populates="pump_audit")
 
-    broj_okretaja = Column(Integer, nullable=False)
-    total_sati_rada = Column(Integer, nullable=False)
-    stanje_alarma = Column(String)
+    speed = Column(Integer, nullable=False)
+    working_time = Column(Float, nullable=False)
+    alarm_status = Column(String)
 
-    broj_okretaja_unit_id = Column(Integer, ForeignKey("unit.id"))
-    broj_okretaja_unit = relationship(
-        "Unit", foreign_keys=[broj_okretaja_unit_id])
+    speed_unit_id = Column(Integer, ForeignKey("unit.id"))
+    speed_unit = relationship(
+        "Unit", foreign_keys=[speed_unit_id])
 
     operational_timestamp = Column(TIMESTAMP(timezone=True),
                                    nullable=False, server_default=text("NOW()"))
 
 
-class AkumulatorAudit(Base):
-    __tablename__ = "akumulator_audit"
+class BatteryAudit(Base):
+    __tablename__ = "battery_audit"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
     aquapod = relationship(
-        "AquaPod", back_populates="akumulator_audit")
+        "AquaPod", back_populates="battery_audit")
 
-    struja_punjenja = Column(Float, nullable=False)
-    struja_praznjenja = Column(Float, nullable=False)
-    napon = Column(Float, nullable=False)
-    kapacitet = Column(Float, nullable=False)
-    broj_ciklusa = Column(Integer, nullable=False)
+    charge_current = Column(Float, nullable=False)
+    discharge_current = Column(Float, nullable=False)
+    voltage = Column(Float, nullable=False)
+    capacity = Column(Float, nullable=False)
+    cycle_count = Column(Integer, nullable=False)
 
-    struja_punjenja_unit_id = Column(Integer, ForeignKey("unit.id"))
-    struja_praznjenja_unit_id = Column(Integer, ForeignKey("unit.id"))
-    napon_unit_id = Column(Integer, ForeignKey("unit.id"))
-    kapacitet_unit_id = Column(Integer, ForeignKey("unit.id"))
+    charge_current_unit_id = Column(Integer, ForeignKey("unit.id"))
+    discharge_current_unit_id = Column(Integer, ForeignKey("unit.id"))
+    voltage_unit_id = Column(Integer, ForeignKey("unit.id"))
+    capacity_unit_id = Column(Integer, ForeignKey("unit.id"))
 
-    struja_punjenja_unit = relationship(
-        "Unit", foreign_keys=[struja_punjenja_unit_id])
-    struja_praznjenja_unit = relationship(
-        "Unit", foreign_keys=[struja_praznjenja_unit_id])
-    napon_unit = relationship(
-        "Unit", foreign_keys=[napon_unit_id])
-    kapacitet_unit = relationship(
-        "Unit", foreign_keys=[kapacitet_unit_id])
+    charge_current_unit = relationship(
+        "Unit", foreign_keys=[charge_current_unit_id])
+    discharge_current_unit = relationship(
+        "Unit", foreign_keys=[discharge_current_unit_id])
+    voltage_unit = relationship(
+        "Unit", foreign_keys=[voltage_unit_id])
+    capacity_unit = relationship(
+        "Unit", foreign_keys=[capacity_unit_id])
 
     operational_timestamp = Column(TIMESTAMP(timezone=True),
                                    nullable=False, server_default=text("NOW()"))
 
 
-class SolarniPanelAudit(Base):
+class SolarPanelAudit(Base):
     __tablename__ = "solarni_panel_audit"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
     aquapod = relationship(
         "AquaPod", back_populates="solarni_panel_audit")
 
-    insolacija = Column(Float, nullable=False)
-    napon = Column(Float, nullable=False)
-    iskoristivost = Column(Float, nullable=False)
-    total_sati_rada = Column(Integer, nullable=False)
+    insolation = Column(Float, nullable=False)
+    voltage = Column(Float, nullable=False)
+    utilization = Column(Float, nullable=False)
+    working_time = Column(Float, nullable=False)
 
-    insolacija_unit_id = Column(Integer, ForeignKey("unit.id"))
-    napon_unit_id = Column(Integer, ForeignKey("unit.id"))
-    iskoristivost_unit_id = Column(Integer, ForeignKey("unit.id"))
+    insolation_unit_id = Column(Integer, ForeignKey("unit.id"))
+    voltage_unit_id = Column(Integer, ForeignKey("unit.id"))
+    utilization_unit_id = Column(Integer, ForeignKey("unit.id"))
 
-    insolacija_unit = relationship(
-        "Unit", foreign_keys=[insolacija_unit_id])
-    napon_unit = relationship(
-        "Unit", foreign_keys=[napon_unit_id])
-    iskoristivost_unit = relationship(
-        "Unit", foreign_keys=[iskoristivost_unit_id])
+    insolation_unit = relationship(
+        "Unit", foreign_keys=[insolation_unit_id])
+    voltage_unit = relationship(
+        "Unit", foreign_keys=[voltage_unit_id])
+    utilization_unit = relationship(
+        "Unit", foreign_keys=[utilization_unit_id])
 
     operational_timestamp = Column(TIMESTAMP(timezone=True),
                                    nullable=False, server_default=text("NOW()"))
 
 
-class OkolisAudit(Base):
-    __tablename__ = "okolis_audit"
+class EnvironmentAudit(Base):
+    __tablename__ = "environment_audit"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
     aquapod = relationship(
-        "AquaPod", back_populates="okolis_audit")
+        "AquaPod", back_populates="environment_audit")
 
-    dubina_mora = Column(Float, nullable=False)
-    temp_mora = Column(Float, nullable=False)
-    ph_mora = Column(Float, nullable=False)
-    smjer_vjetra = Column(Float, nullable=False)
-    snaga_vjetra = Column(Float, nullable=False)
-    temp_zraka = Column(Float, nullable=False)
+    sea_depth = Column(Float, nullable=False)
+    sea_temperature = Column(Float, nullable=False)
+    sea_ph = Column(Float, nullable=False)
+    wind_direction = Column(Float, nullable=False)
+    wind_power = Column(Float, nullable=False)
+    air_temperature = Column(Float, nullable=False)
 
-    dubina_mora_unit_id = Column(Integer, ForeignKey("unit.id"))
-    temp_mora_unit_id = Column(Integer, ForeignKey("unit.id"))
-    ph_mora_unit_id = Column(Integer, ForeignKey("unit.id"))
-    smjer_vjetra_unit_id = Column(Integer, ForeignKey("unit.id"))
-    snaga_vjetra_unit_id = Column(Integer, ForeignKey("unit.id"))
-    temp_zraka_unit_id = Column(Integer, ForeignKey("unit.id"))
+    sea_depth_unit_id = Column(Integer, ForeignKey("unit.id"))
+    sea_temperature_unit_id = Column(Integer, ForeignKey("unit.id"))
+    sea_ph_unit_id = Column(Integer, ForeignKey("unit.id"))
+    wind_direction_unit_id = Column(Integer, ForeignKey("unit.id"))
+    wind_power_unit_id = Column(Integer, ForeignKey("unit.id"))
+    air_temperature_unit_id = Column(Integer, ForeignKey("unit.id"))
 
-    dubina_mora_unit = relationship(
-        "Unit", foreign_keys=[dubina_mora_unit_id])
-    temp_mora_unit = relationship(
-        "Unit", foreign_keys=[temp_mora_unit_id])
-    ph_mora_unit = relationship(
-        "Unit", foreign_keys=[ph_mora_unit_id])
-    smjer_vjetra_unit = relationship(
-        "Unit", foreign_keys=[smjer_vjetra_unit_id])
-    snaga_vjetra_unit = relationship(
-        "Unit", foreign_keys=[snaga_vjetra_unit_id])
-    temp_zraka_unit = relationship(
-        "Unit", foreign_keys=[temp_zraka_unit_id])
+    sea_depth_unit = relationship(
+        "Unit", foreign_keys=[sea_depth_unit_id])
+    sea_temperature_unit = relationship(
+        "Unit", foreign_keys=[sea_temperature_unit_id])
+    sea_ph_unit = relationship(
+        "Unit", foreign_keys=[sea_ph_unit_id])
+    wind_direction_unit = relationship(
+        "Unit", foreign_keys=[wind_direction_unit_id])
+    wind_power_unit = relationship(
+        "Unit", foreign_keys=[wind_power_unit_id])
+    air_temperature_unit = relationship(
+        "Unit", foreign_keys=[air_temperature_unit_id])
 
     operational_timestamp = Column(TIMESTAMP(timezone=True),
                                    nullable=False, server_default=text("NOW()"))
