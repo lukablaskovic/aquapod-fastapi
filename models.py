@@ -66,8 +66,8 @@ class GPSPosition(Base):
     aquapod = relationship(
         "AquaPod", back_populates="gps_position", uselist=False)
 
-    latitude = Column(Float, nullable=False)
-    longitude = Column(Float, nullable=False)
+    latitude = Column(Float, nullable=False, default=0.0)
+    longitude = Column(Float, nullable=False, default=0.0)
 
     latitude_unit_id = Column(Integer, ForeignKey(
         "unit.id"), default=11)  # degree °

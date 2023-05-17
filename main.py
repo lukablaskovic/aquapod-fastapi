@@ -24,15 +24,4 @@ def root():
 
 app.include_router(aquapod.router)
 
-
-@app.get("/pumps")
-def getPump(db: Session = Depends(get_db)):
-    pumps = []
-    try:
-        pumps = db.query(models.Pump).all()
-    except Exception as e:
-        print(e)
-    return pumps
-
-
 # Run with uvicorn main:app --reload

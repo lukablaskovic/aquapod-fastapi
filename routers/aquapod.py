@@ -18,22 +18,26 @@ def getAllAquapods(db: Session = Depends(get_db)):
     try:
         aquapods = db.query(models.AquaPod).all()
     except Exception as e:
-        print(e)
+        raise HTTPException(
+            status_code=500, detail=f"An error occurred. {e}")
     return aquapods
 
 # Return specific aquapod by ID
 
 
-@router.get("/{name}", response_model=schemas.AquaPod)
+@router.get("/{name}", response_model=Optional[schemas.AquaPod])
 def getAquapodByName(name: str, db: Session = Depends(get_db)):
     try:
         aquapod = db.query(models.AquaPod).filter(
             models.AquaPod.name == name).first()
-        if not aquapod:
-            raise HTTPException(
-                status_code=404, detail="Aquapod not found.")
     except Exception as e:
-        print(e)
+        raise HTTPException(
+            status_code=500, detail=f"An error occurred. {e}")
+
+    if not aquapod:
+        raise HTTPException(
+            status_code=404, detail="Aquapod not found.")
+
     return aquapod
 
 # Create new Aquapod instance, along with it's components
@@ -44,8 +48,7 @@ def createAquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db))
     try:
         new_aquapod = models.AquaPod(**aquapod.dict())
         db.add(new_aquapod)
-        db.commit()
-        db.refresh(new_aquapod)
+        db.flush()
 
         # create components for aquapod
 
@@ -64,7 +67,10 @@ def createAquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db))
         db.add(new_trash_container)
 
         # Pump(aquapod_id, speed(RPM)=0.0, working_time=0.00(min), alarm_status=null)
-        new_pump = models.Pump(aquapod_id=new_aquapod.id)
+        pump_data = schemas.PumpCreate(aquapod_id=new_aquapod.id)
+        print("pump_data", pump_data)
+        new_pump = models.Pump(**pump_data.dict())
+        print("new_pump", new_pump)
         db.add(new_pump)
 
         # Battery(aquapod_id, charge_current(A) = 0.0, discharge_current(A)=0.0, voltage(V)=0.0, capacity(Ah)=0.0, cycle_count=0)
@@ -81,7 +87,22 @@ def createAquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db))
         db.add(new_environment)
 
         db.commit()
+        db.refresh(new_aquapod)
 
     except Exception as e:
-        print(e)
+        raise HTTPException(
+            status_code=500, detail=f"An error occurred. {e}")
     return new_aquapod
+
+
+@router.get("/{name}/pump", response_model=schemas.Pump)
+def get_pump_of_aquapod(name: str, db: Session = Depends(get_db)):
+    aquapod = db.query(models.AquaPod).filter(
+        models.AquaPod.name == name).first()
+    if aquapod is None:
+        raise HTTPException(status_code=404, detail="Aquapod not found")
+    pump = db.query(models.Pump).filter(
+        models.Pump.aquapod_id == aquapod.id).first()
+    if pump is None:
+        raise HTTPException(status_code=404, detail="Pump not found")
+    return pump
