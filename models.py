@@ -54,9 +54,9 @@ class VideoCamera(Base):
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
     aquapod = relationship("AquaPod", back_populates="video_camera")
 
-    is_on = Column(Boolean, nullable=False)
-    pan = Column(Float, nullable=False)
-    zoom = Column(Float, nullable=False)
+    is_on = Column(Boolean, nullable=False, default=False)
+    pan = Column(Float, nullable=False, default=0.0)
+    zoom = Column(Float, nullable=False, default=0.0)
 
 
 class GPSPosition(Base):
@@ -69,8 +69,10 @@ class GPSPosition(Base):
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
 
-    latitude_unit_id = Column(Integer, ForeignKey("unit.id"), unique=True)
-    longitude_unit_id = Column(Integer, ForeignKey("unit.id"), unique=True)
+    latitude_unit_id = Column(Integer, ForeignKey(
+        "unit.id"), default=11)  # degree °
+    longitude_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=11)  # degree °
 
     latitude_unit = relationship("Unit", foreign_keys=[latitude_unit_id])
     longitude_unit = relationship("Unit", foreign_keys=[longitude_unit_id])
@@ -83,7 +85,7 @@ class TrashContainer(Base):
     __tablename__ = "trash_container"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    garbage_filled = Column(Float, nullable=False, server_default=u"0.0")
+    garbage_filled = Column(Float, nullable=False, default=0.0)
 
     aquapod = relationship(
         "AquaPod", back_populates="trash_container", uselist=False)
@@ -97,11 +99,11 @@ class Pump(Base):
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
     aquapod = relationship("AquaPod", back_populates="pump", uselist=False)
 
-    speed = Column(Integer, nullable=False, server_default=u"0")
-    working_time = Column(Float, nullable=False, server_default=u"0.0")
+    speed = Column(Integer, nullable=False, default=0.0)
+    working_time = Column(Float, nullable=False, default=0.0)
     alarm_status = Column(String)
 
-    speed_unit_id = Column(Integer, ForeignKey("unit.id"))
+    speed_unit_id = Column(Integer, ForeignKey("unit.id"), default=1)  # RPM
     speed_unit = relationship(
         "Unit", foreign_keys=[speed_unit_id])
 
@@ -113,16 +115,18 @@ class Battery(Base):
     aquapod = relationship(
         "AquaPod", back_populates="battery", uselist=False)
 
-    charge_current = Column(Float, nullable=False, server_default=u"0.0")
-    discharge_current = Column(Float, nullable=False, server_default=u"0.0")
-    voltage = Column(Float, nullable=False, server_default=u"0.0")
-    capacity = Column(Float, nullable=False, server_default=u"0.0")
-    cycle_count = Column(Integer, nullable=False, server_default=u"0")
+    charge_current = Column(Float, nullable=False, default=0.0)
+    discharge_current = Column(Float, nullable=False, default=0.0)
+    voltage = Column(Float, nullable=False, default=0.0)
+    capacity = Column(Float, nullable=False, default=0.0)
+    cycle_count = Column(Integer, nullable=False, default=0)
 
-    charge_current_unit_id = Column(Integer, ForeignKey("unit.id"))
-    discharge_current_unit_id = Column(Integer, ForeignKey("unit.id"))
-    voltage_unit_id = Column(Integer, ForeignKey("unit.id"))
-    capacity_unit_id = Column(Integer, ForeignKey("unit.id"))
+    charge_current_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=2)  # A
+    discharge_current_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=2)  # A
+    voltage_unit_id = Column(Integer, ForeignKey("unit.id"), default=3)  # V
+    capacity_unit_id = Column(Integer, ForeignKey("unit.id"), default=4)  # Ah
 
     charge_current_unit = relationship(
         "Unit", foreign_keys=[charge_current_unit_id])
@@ -141,14 +145,16 @@ class SolarPanel(Base):
     aquapod = relationship(
         "AquaPod", back_populates="solar_panel", uselist=False)
 
-    insolation = Column(Float, nullable=False, server_default=u"0.0")
-    voltage = Column(Float, nullable=False, server_default=u"0.0")
-    utilization = Column(Float, nullable=False, server_default=u"0.0")
-    working_time = Column(Float, nullable=False, server_default=u"0.0")
+    insolation = Column(Float, nullable=False, default=0.0)
+    voltage = Column(Float, nullable=False, default=0.0)
+    utilization = Column(Float, nullable=False, default=0.0)
+    working_time = Column(Float, nullable=False, default=0.0)
 
-    insolation_unit_id = Column(Integer, ForeignKey("unit.id"))
-    voltage_unit_id = Column(Integer, ForeignKey("unit.id"))
-    utilization_unit_id = Column(Integer, ForeignKey("unit.id"))
+    insolation_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=6)  # kWh/m2
+    voltage_unit_id = Column(Integer, ForeignKey("unit.id"), default=3)  # V
+    utilization_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=7)  # W
 
     insolation_unit = relationship(
         "Unit", foreign_keys=[insolation_unit_id])
@@ -167,19 +173,23 @@ class Environment(Base):
     aquapod = relationship(
         "AquaPod", back_populates="environment", uselist=False)
 
-    sea_depth = Column(Float, nullable=False, server_default=u"0.0")
-    sea_temperature = Column(Float, nullable=False, server_default=u"0.0")
-    sea_ph = Column(Float, nullable=False, server_default=u"0.0")
-    wind_direction = Column(Float, nullable=False, server_default=u"0.0")
-    wind_power = Column(Float, nullable=False, server_default=u"0.0")
-    air_temperature = Column(Float, nullable=False, server_default=u"0.0")
+    sea_depth = Column(Float, nullable=False, default=0.0)
+    sea_temperature = Column(Float, nullable=False, default=0.0)
+    sea_ph = Column(Float, nullable=False, default=0.0)
+    wind_direction = Column(Float, nullable=False, default=0.0)
+    wind_power = Column(Float, nullable=False, default=0.0)
+    air_temperature = Column(Float, nullable=False, default=0.0)
 
-    sea_depth_unit_id = Column(Integer, ForeignKey("unit.id"))
-    sea_temperature_unit_id = Column(Integer, ForeignKey("unit.id"))
-    sea_ph_unit_id = Column(Integer, ForeignKey("unit.id"))
-    wind_direction_unit_id = Column(Integer, ForeignKey("unit.id"))
-    wind_power_unit_id = Column(Integer, ForeignKey("unit.id"))
-    air_temperature_unit_id = Column(Integer, ForeignKey("unit.id"))
+    sea_depth_unit_id = Column(Integer, ForeignKey("unit.id"), default=8)  # m
+    sea_temperature_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=9)  # °C
+    sea_ph_unit_id = Column(Integer, ForeignKey("unit.id"), default=10)  # pH
+    wind_direction_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=11)  # degree °
+    wind_power_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=12)  # km/h
+    air_temperature_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=9)  # °C
 
     sea_depth_unit = relationship(
         "Unit", foreign_keys=[sea_depth_unit_id])
@@ -200,15 +210,15 @@ class Environment(Base):
 class PumpAudit(Base):
     __tablename__ = "pump_audit"
     id = Column(Integer, primary_key=True, index=True)
-    aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
+    aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
     aquapod = relationship(
-        "AquaPod", back_populates="pump_audit")
+        "AquaPod", back_populates="pump_audit", uselist=False)
 
-    speed = Column(Integer, nullable=False)
-    working_time = Column(Float, nullable=False)
+    speed = Column(Integer, nullable=False, default=0.0)
+    working_time = Column(Float, nullable=False, default=0.0)
     alarm_status = Column(String)
 
-    speed_unit_id = Column(Integer, ForeignKey("unit.id"))
+    speed_unit_id = Column(Integer, ForeignKey("unit.id"), default=1)  # RPM
     speed_unit = relationship(
         "Unit", foreign_keys=[speed_unit_id])
 
@@ -219,20 +229,22 @@ class PumpAudit(Base):
 class BatteryAudit(Base):
     __tablename__ = "battery_audit"
     id = Column(Integer, primary_key=True, index=True)
-    aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
+    aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
     aquapod = relationship(
-        "AquaPod", back_populates="battery_audit")
+        "AquaPod", back_populates="battery_audit", uselist=False)
 
-    charge_current = Column(Float, nullable=False)
-    discharge_current = Column(Float, nullable=False)
-    voltage = Column(Float, nullable=False)
-    capacity = Column(Float, nullable=False)
-    cycle_count = Column(Integer, nullable=False)
+    charge_current = Column(Float, nullable=False, default=0.0)
+    discharge_current = Column(Float, nullable=False, default=0.0)
+    voltage = Column(Float, nullable=False, default=0.0)
+    capacity = Column(Float, nullable=False, default=0.0)
+    cycle_count = Column(Integer, nullable=False, default=0)
 
-    charge_current_unit_id = Column(Integer, ForeignKey("unit.id"))
-    discharge_current_unit_id = Column(Integer, ForeignKey("unit.id"))
-    voltage_unit_id = Column(Integer, ForeignKey("unit.id"))
-    capacity_unit_id = Column(Integer, ForeignKey("unit.id"))
+    charge_current_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=2)  # A
+    discharge_current_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=2)  # A
+    voltage_unit_id = Column(Integer, ForeignKey("unit.id"), default=3)  # V
+    capacity_unit_id = Column(Integer, ForeignKey("unit.id"), default=4)  # Ah
 
     charge_current_unit = relationship(
         "Unit", foreign_keys=[charge_current_unit_id])
@@ -250,18 +262,20 @@ class BatteryAudit(Base):
 class SolarPanelAudit(Base):
     __tablename__ = "solar_panel_audit"
     id = Column(Integer, primary_key=True, index=True)
-    aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
+    aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
     aquapod = relationship(
-        "AquaPod", back_populates="solar_panel_audit")
+        "AquaPod", back_populates="solar_panel_audit", uselist=False)
 
-    insolation = Column(Float, nullable=False)
-    voltage = Column(Float, nullable=False)
-    utilization = Column(Float, nullable=False)
-    working_time = Column(Float, nullable=False)
+    insolation = Column(Float, nullable=False, default=0.0)
+    voltage = Column(Float, nullable=False, default=0.0)
+    utilization = Column(Float, nullable=False, default=0.0)
+    working_time = Column(Float, nullable=False, default=0.0)
 
-    insolation_unit_id = Column(Integer, ForeignKey("unit.id"))
-    voltage_unit_id = Column(Integer, ForeignKey("unit.id"))
-    utilization_unit_id = Column(Integer, ForeignKey("unit.id"))
+    insolation_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=6)  # kWh/m2
+    voltage_unit_id = Column(Integer, ForeignKey("unit.id"), default=3)  # V
+    utilization_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=7)  # W
 
     insolation_unit = relationship(
         "Unit", foreign_keys=[insolation_unit_id])
@@ -276,24 +290,27 @@ class SolarPanelAudit(Base):
 
 class EnvironmentAudit(Base):
     __tablename__ = "environment_audit"
-    id = Column(Integer, primary_key=True, index=True)
-    aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
+    aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
     aquapod = relationship(
-        "AquaPod", back_populates="environment_audit")
+        "AquaPod", back_populates="environment_audit", uselist=False)
 
-    sea_depth = Column(Float, nullable=False)
-    sea_temperature = Column(Float, nullable=False)
-    sea_ph = Column(Float, nullable=False)
-    wind_direction = Column(Float, nullable=False)
-    wind_power = Column(Float, nullable=False)
-    air_temperature = Column(Float, nullable=False)
+    sea_depth = Column(Float, nullable=False, default=0.0)
+    sea_temperature = Column(Float, nullable=False, default=0.0)
+    sea_ph = Column(Float, nullable=False, default=0.0)
+    wind_direction = Column(Float, nullable=False, default=0.0)
+    wind_power = Column(Float, nullable=False, default=0.0)
+    air_temperature = Column(Float, nullable=False, default=0.0)
 
-    sea_depth_unit_id = Column(Integer, ForeignKey("unit.id"))
-    sea_temperature_unit_id = Column(Integer, ForeignKey("unit.id"))
-    sea_ph_unit_id = Column(Integer, ForeignKey("unit.id"))
-    wind_direction_unit_id = Column(Integer, ForeignKey("unit.id"))
-    wind_power_unit_id = Column(Integer, ForeignKey("unit.id"))
-    air_temperature_unit_id = Column(Integer, ForeignKey("unit.id"))
+    sea_depth_unit_id = Column(Integer, ForeignKey("unit.id"), default=8)  # m
+    sea_temperature_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=9)  # °C
+    sea_ph_unit_id = Column(Integer, ForeignKey("unit.id"), default=10)  # pH
+    wind_direction_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=11)  # degree °
+    wind_power_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=12)  # km/h
+    air_temperature_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=9)  # °C
 
     sea_depth_unit = relationship(
         "Unit", foreign_keys=[sea_depth_unit_id])
