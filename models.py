@@ -2,13 +2,15 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import text
-from .db import Base
+from db import Base
+
+# Schalchemy model - defines what our database looks like, as well as ORM relationships
 
 
 class AquaPod(Base):
     __tablename__ = "aquapod"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False, unique=True)
 
     video_camera = relationship(
         "VideoCamera", back_populates="aquapod", uselist=False)
@@ -47,10 +49,10 @@ class Unit(Base):
 
 
 class VideoCamera(Base):
-    __tablename__ = "video_cam"
+    __tablename__ = "video_camera"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    aquapod = relationship("AquaPod", back_populates="video_cam")
+    aquapod = relationship("AquaPod", back_populates="video_camera")
 
     is_on = Column(Boolean, nullable=False)
     pan = Column(Float, nullable=False)
@@ -81,13 +83,13 @@ class TrashContainer(Base):
     __tablename__ = "trash_container"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
-    garbage_filled = Column(Float, nullable=False)
+    garbage_filled = Column(Float, nullable=False, server_default=u"0.0")
 
     aquapod = relationship(
         "AquaPod", back_populates="trash_container", uselist=False)
 
 
-# Sensors
+# Components
 
 class Pump(Base):
     __tablename__ = "pump"
@@ -95,8 +97,8 @@ class Pump(Base):
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
     aquapod = relationship("AquaPod", back_populates="pump", uselist=False)
 
-    speed = Column(Integer, nullable=False)
-    working_time = Column(Float, nullable=False)
+    speed = Column(Integer, nullable=False, server_default=u"0")
+    working_time = Column(Float, nullable=False, server_default=u"0.0")
     alarm_status = Column(String)
 
     speed_unit_id = Column(Integer, ForeignKey("unit.id"))
@@ -111,11 +113,11 @@ class Battery(Base):
     aquapod = relationship(
         "AquaPod", back_populates="battery", uselist=False)
 
-    charge_current = Column(Float, nullable=False)
-    discharge_current = Column(Float, nullable=False)
-    voltage = Column(Float, nullable=False)
-    capacity = Column(Float, nullable=False)
-    cycle_count = Column(Integer, nullable=False)
+    charge_current = Column(Float, nullable=False, server_default=u"0.0")
+    discharge_current = Column(Float, nullable=False, server_default=u"0.0")
+    voltage = Column(Float, nullable=False, server_default=u"0.0")
+    capacity = Column(Float, nullable=False, server_default=u"0.0")
+    cycle_count = Column(Integer, nullable=False, server_default=u"0")
 
     charge_current_unit_id = Column(Integer, ForeignKey("unit.id"))
     discharge_current_unit_id = Column(Integer, ForeignKey("unit.id"))
@@ -139,10 +141,10 @@ class SolarPanel(Base):
     aquapod = relationship(
         "AquaPod", back_populates="solar_panel", uselist=False)
 
-    insolation = Column(Float, nullable=False)
-    voltage = Column(Float, nullable=False)
-    utilization = Column(Float, nullable=False)
-    working_time = Column(Float, nullable=False)
+    insolation = Column(Float, nullable=False, server_default=u"0.0")
+    voltage = Column(Float, nullable=False, server_default=u"0.0")
+    utilization = Column(Float, nullable=False, server_default=u"0.0")
+    working_time = Column(Float, nullable=False, server_default=u"0.0")
 
     insolation_unit_id = Column(Integer, ForeignKey("unit.id"))
     voltage_unit_id = Column(Integer, ForeignKey("unit.id"))
@@ -155,6 +157,8 @@ class SolarPanel(Base):
     utilization_unit = relationship(
         "Unit", foreign_keys=[utilization_unit_id])
 
+# Sensor data
+
 
 class Environment(Base):
     __tablename__ = "environment"
@@ -163,12 +167,12 @@ class Environment(Base):
     aquapod = relationship(
         "AquaPod", back_populates="environment", uselist=False)
 
-    sea_depth = Column(Float, nullable=False)
-    sea_temperature = Column(Float, nullable=False)
-    sea_ph = Column(Float, nullable=False)
-    wind_direction = Column(Float, nullable=False)
-    wind_power = Column(Float, nullable=False)
-    air_temperature = Column(Float, nullable=False)
+    sea_depth = Column(Float, nullable=False, server_default=u"0.0")
+    sea_temperature = Column(Float, nullable=False, server_default=u"0.0")
+    sea_ph = Column(Float, nullable=False, server_default=u"0.0")
+    wind_direction = Column(Float, nullable=False, server_default=u"0.0")
+    wind_power = Column(Float, nullable=False, server_default=u"0.0")
+    air_temperature = Column(Float, nullable=False, server_default=u"0.0")
 
     sea_depth_unit_id = Column(Integer, ForeignKey("unit.id"))
     sea_temperature_unit_id = Column(Integer, ForeignKey("unit.id"))
@@ -244,11 +248,11 @@ class BatteryAudit(Base):
 
 
 class SolarPanelAudit(Base):
-    __tablename__ = "solarni_panel_audit"
+    __tablename__ = "solar_panel_audit"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
     aquapod = relationship(
-        "AquaPod", back_populates="solarni_panel_audit")
+        "AquaPod", back_populates="solar_panel_audit")
 
     insolation = Column(Float, nullable=False)
     voltage = Column(Float, nullable=False)
@@ -306,6 +310,13 @@ class EnvironmentAudit(Base):
 
     operational_timestamp = Column(TIMESTAMP(timezone=True),
                                    nullable=False, server_default=text("NOW()"))
+
+
+class Admin(Base):
+    __tablename__ = "admin"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, nullable=False, unique=True)
+    password = Column(String, nullable=False)  # 06:00:00 password hashing
 
 # Drop all tables
 # DROP SCHEMA public CASCADE
