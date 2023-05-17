@@ -290,6 +290,7 @@ class SolarPanelAudit(Base):
 
 class EnvironmentAudit(Base):
     __tablename__ = "environment_audit"
+    id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
     aquapod = relationship(
         "AquaPod", back_populates="environment_audit", uselist=False)
