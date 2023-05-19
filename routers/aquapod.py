@@ -7,7 +7,8 @@ import schemas
 from db import get_db
 
 router = APIRouter(
-    prefix="/aquapods"
+    prefix="/aquapods",
+    tags=["AquaPod"]
 )
 
 # Return all aquapods
