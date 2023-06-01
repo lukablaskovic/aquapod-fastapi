@@ -12,7 +12,7 @@ import models
 import schemas
 import utils
 from db import engine, get_db
-from routers import aquapod, user
+from routers import aquapod, user, auth
 
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -25,5 +25,5 @@ def root():
 
 app.include_router(aquapod.router)
 app.include_router(user.router)
-
+app.include_router(auth.router)
 # Run with uvicorn main:app --reload

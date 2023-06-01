@@ -10,7 +10,7 @@ DB = {
     "host": os.getenv("UVICORN_HOST"),
     "database": os.getenv("UVICORN_DATABASE")
 }
-print(DB)
+# print(DB)
 
 
 SQLALCHEMY_DATABASE_URL = f"postgresql://{DB['user']}:{DB['password']}@{DB['host']}/{DB['database']}"
