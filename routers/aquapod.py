@@ -4,6 +4,8 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 import models
 import schemas
+import utils
+
 from db import get_db
 
 router = APIRouter(
@@ -15,7 +17,7 @@ router = APIRouter(
 
 
 @router.get("", response_model=List[schemas.AquaPod])
-def getAllAquapods(db: Session = Depends(get_db)):
+def get_all_aquapods(db: Session = Depends(get_db)):
     try:
         aquapods = db.query(models.AquaPod).all()
     except Exception as e:
@@ -27,7 +29,7 @@ def getAllAquapods(db: Session = Depends(get_db)):
 
 
 @router.get("/{name}", response_model=Optional[schemas.AquaPod])
-def getAquapodByName(name: str, db: Session = Depends(get_db)):
+def get_aquapod_by_name(name: str, db: Session = Depends(get_db)):
     try:
         aquapod = db.query(models.AquaPod).filter(
             models.AquaPod.name == name).first()
@@ -45,7 +47,7 @@ def getAquapodByName(name: str, db: Session = Depends(get_db)):
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-def createAquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db)):
+def create_aquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db)):
     try:
         new_aquapod = models.AquaPod(**aquapod.dict())
         db.add(new_aquapod)

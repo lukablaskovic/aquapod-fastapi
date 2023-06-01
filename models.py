@@ -330,11 +330,11 @@ class EnvironmentAudit(Base):
                                    nullable=False, server_default=text("NOW()"))
 
 
-class Admin(Base):
-    __tablename__ = "admin"
+class User(Base):
+    __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, nullable=False, unique=True)
-    password = Column(String, nullable=False)  # 06:00:00 password hashing
+    password = Column(String, nullable=False)
 
 # Drop all tables
 # DROP SCHEMA public CASCADE

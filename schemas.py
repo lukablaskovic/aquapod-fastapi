@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 
 # Schema/Pydantic model defines the structure of a request & response
@@ -29,6 +29,19 @@ class PumpCreate(BaseModel):
 class Pump(PumpCreate):
     id: int
     speed_unit_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserOut(BaseModel):
+    id: int
+    email: EmailStr
 
     class Config:
         orm_mode = True

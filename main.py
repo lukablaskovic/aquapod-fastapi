@@ -10,8 +10,9 @@ from psycopg2.extras import RealDictCursor
 from sqlalchemy.orm import Session
 import models
 import schemas
+import utils
 from db import engine, get_db
-from routers import aquapod
+from routers import aquapod, user
 
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -23,5 +24,6 @@ def root():
 
 
 app.include_router(aquapod.router)
+app.include_router(user.router)
 
 # Run with uvicorn main:app --reload
