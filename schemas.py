@@ -36,7 +36,7 @@ class VideoCameraCreate(BaseModel):
     is_on: bool = False
     pan: float = 0.0
     zoom: float = 0.0
-    operational_timestamp: datetime = datetime.now()
+    operational_timestamp: datetime
 
 
 class VideoCamera(VideoCameraCreate):
@@ -52,7 +52,7 @@ class GPSPositionCreate(BaseModel):
     aquapod_id: int
     latitude: float = 0.0
     longitude: float = 0.0
-    operational_timestamp: datetime = datetime.now()
+    operational_timestamp: datetime
 
 
 class GPSPosition(GPSPositionCreate):
@@ -69,7 +69,7 @@ class GPSPosition(GPSPositionCreate):
 class TrashContainerCreate(BaseModel):
     aquapod_id: int
     garbage_filled: float = 0.0
-    operational_timestamp: datetime = datetime.now()
+    operational_timestamp: datetime
 
 
 class TrashContainer(TrashContainerCreate):
@@ -86,7 +86,7 @@ class PumpCreate(BaseModel):
     speed: int = 0
     working_time: float = 0.0
     alarm_status: Optional[str] = None
-    operational_timestamp: datetime = datetime.now()
+    operational_timestamp: datetime
 
 
 class Pump(PumpCreate):
@@ -106,7 +106,7 @@ class BatteryCreate(BaseModel):
     voltage: float = 0.0
     capacity: float = 0.0
     cycle_count: int = 0
-    operational_timestamp: datetime = datetime.now()
+    operational_timestamp: datetime
 
 
 class Battery(BatteryCreate):
@@ -128,7 +128,7 @@ class SolarPanelCreate(BaseModel):
     voltage: float = 0.0
     utilization: float = 0.0
     working_time: float = 0.0
-    operational_timestamp: datetime = datetime.now()
+    operational_timestamp: datetime
 
 
 class SolarPanel(SolarPanelCreate):
@@ -151,7 +151,7 @@ class EnvironmentCreate(BaseModel):
     wind_direction: float = 0.0
     wind_power: float = 0.0
     air_temperature: float = 0.0
-    operational_timestamp: datetime = datetime.now()
+    operational_timestamp: datetime
 
 
 class Environment(EnvironmentCreate):
