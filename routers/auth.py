@@ -11,7 +11,7 @@ import oauth2
 router = APIRouter(prefix="/auth", tags=['Authentication'])
 
 
-@router.post("/")
+@router.post("/", status_code=status.HTTP_200_OK)
 def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(db.get_db)):
     # returns username, password
     user = db.query(models.User).filter(

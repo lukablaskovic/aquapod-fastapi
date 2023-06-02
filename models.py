@@ -28,6 +28,8 @@ class AquaPod(Base):
         "Environment", back_populates="aquapod", uselist=False)
 
     # Aquapod should have many audit records
+    gps_position_audit = relationship(
+        "GPSPositionAudit", back_populates="aquapod")
     pump_audit = relationship(
         "PumpAudit", back_populates="aquapod")
     battery_audit = relationship(
@@ -74,11 +76,10 @@ class GPSPosition(Base):
     longitude_unit_id = Column(
         Integer, ForeignKey("unit.id"), default=11)  # degree °
 
-    latitude_unit = relationship("Unit", foreign_keys=[latitude_unit_id])
-    longitude_unit = relationship("Unit", foreign_keys=[longitude_unit_id])
-
-    timestamp = Column(TIMESTAMP(timezone=True),
-                       nullable=False, server_default=text("NOW()"))
+    latitude_unit = relationship(
+        "Unit", foreign_keys=[latitude_unit_id])
+    longitude_unit = relationship(
+        "Unit", foreign_keys=[longitude_unit_id])
 
 
 class TrashContainer(Base):
@@ -205,6 +206,30 @@ class Environment(Base):
         "Unit", foreign_keys=[air_temperature_unit_id])
 
 # Audit tables
+
+
+class GPSPositionAudit(Base):
+    __tablename__ = "gps_position_audit"
+    id = Column(Integer, primary_key=True, index=True)
+    aquapod_id = Column(Integer, ForeignKey("aquapod.id"), unique=True)
+    aquapod = relationship(
+        "AquaPod", back_populates="gps_position_audit", uselist=False)
+
+    latitude = Column(Float, nullable=False, default=0.0)
+    longitude = Column(Float, nullable=False, default=0.0)
+
+    latitude_unit_id = Column(Integer, ForeignKey(
+        "unit.id"), default=11)  # degree °
+    longitude_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=11)  # degree °
+
+    latitude_unit = relationship(
+        "Unit", foreign_keys=[latitude_unit_id])
+    longitude_unit = relationship(
+        "Unit", foreign_keys=[longitude_unit_id])
+
+    operational_timestamp = Column(TIMESTAMP(timezone=True),
+                                   nullable=False, server_default=text("NOW()"))
 
 
 class PumpAudit(Base):
