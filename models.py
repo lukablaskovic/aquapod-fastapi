@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import text
+from datetime import datetime
 from db import Base
 
 # Schalchemy model - defines what our database looks like, as well as ORM relationships
@@ -13,31 +14,19 @@ class AquaPod(Base):
     name = Column(String, nullable=False, unique=True)
 
     video_camera = relationship(
-        "VideoCamera", back_populates="aquapod", uselist=False)
+        "VideoCamera", back_populates="aquapod")
     gps_position = relationship(
-        "GPSPosition", back_populates="aquapod", uselist=False)
+        "GPSPosition", back_populates="aquapod")
     trash_container = relationship(
-        "TrashContainer", back_populates="aquapod", uselist=False)
+        "TrashContainer", back_populates="aquapod")
     pump = relationship(
-        "Pump", back_populates="aquapod", uselist=False)
+        "Pump", back_populates="aquapod")
     battery = relationship(
-        "Battery", back_populates="aquapod", uselist=False)
+        "Battery", back_populates="aquapod")
     solar_panel = relationship(
-        "SolarPanel", back_populates="aquapod", uselist=False)
+        "SolarPanel", back_populates="aquapod")
     environment = relationship(
-        "Environment", back_populates="aquapod", uselist=False)
-
-    # Aquapod should have many audit records
-    gps_position_audit = relationship(
-        "GPSPositionAudit", back_populates="aquapod")
-    pump_audit = relationship(
-        "PumpAudit", back_populates="aquapod")
-    battery_audit = relationship(
-        "BatteryAudit", back_populates="aquapod")
-    solar_panel_audit = relationship(
-        "SolarPanelAudit", back_populates="aquapod")
-    environment_audit = relationship(
-        "EnvironmentAudit", back_populates="aquapod")
+        "Environment", back_populates="aquapod")
 
 
 class Unit(Base):
@@ -60,6 +49,9 @@ class VideoCamera(Base):
     pan = Column(Float, nullable=False, default=0.0)
     zoom = Column(Float, nullable=False, default=0.0)
 
+    operational_timestamp = Column(TIMESTAMP(timezone=True),
+                                   nullable=False, server_default=text("NOW()"))
+
 
 class GPSPosition(Base):
     __tablename__ = "gps_position"
@@ -81,6 +73,9 @@ class GPSPosition(Base):
     longitude_unit = relationship(
         "Unit", foreign_keys=[longitude_unit_id])
 
+    operational_timestamp = Column(TIMESTAMP(timezone=True),
+                                   nullable=False, server_default=text("NOW()"))
+
 
 class TrashContainer(Base):
     __tablename__ = "trash_container"
@@ -90,6 +85,9 @@ class TrashContainer(Base):
 
     aquapod = relationship(
         "AquaPod", back_populates="trash_container", uselist=False)
+
+    operational_timestamp = Column(TIMESTAMP(timezone=True),
+                                   nullable=False, server_default=text("NOW()"))
 
 
 # Components
@@ -107,6 +105,9 @@ class Pump(Base):
     speed_unit_id = Column(Integer, ForeignKey("unit.id"), default=1)  # RPM
     speed_unit = relationship(
         "Unit", foreign_keys=[speed_unit_id])
+
+    operational_timestamp = Column(TIMESTAMP(timezone=True),
+                                   nullable=False, server_default=text("NOW()"))
 
 
 class Battery(Base):
@@ -138,6 +139,9 @@ class Battery(Base):
     capacity_unit = relationship(
         "Unit", foreign_keys=[capacity_unit_id])
 
+    operational_timestamp = Column(TIMESTAMP(timezone=True),
+                                   nullable=False, server_default=text("NOW()"))
+
 
 class SolarPanel(Base):
     __tablename__ = "solar_panel"
@@ -163,6 +167,9 @@ class SolarPanel(Base):
         "Unit", foreign_keys=[voltage_unit_id])
     utilization_unit = relationship(
         "Unit", foreign_keys=[utilization_unit_id])
+
+    operational_timestamp = Column(TIMESTAMP(timezone=True),
+                                   nullable=False, server_default=text("NOW()"))
 
 # Sensor data
 
@@ -205,9 +212,11 @@ class Environment(Base):
     air_temperature_unit = relationship(
         "Unit", foreign_keys=[air_temperature_unit_id])
 
-# Audit tables
+    operational_timestamp = Column(TIMESTAMP(timezone=True),
+                                   nullable=False, server_default=text("NOW()"))
 
 
+"""
 class GPSPositionAudit(Base):
     __tablename__ = "gps_position_audit"
     id = Column(Integer, primary_key=True, index=True)
@@ -353,6 +362,7 @@ class EnvironmentAudit(Base):
 
     operational_timestamp = Column(TIMESTAMP(timezone=True),
                                    nullable=False, server_default=text("NOW()"))
+"""
 
 
 class User(Base):
