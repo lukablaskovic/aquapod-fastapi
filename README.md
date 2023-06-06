@@ -14,10 +14,10 @@ uvicorn main:app --reload
 Environment variables:
 Linux, macOS, Windows Bash
 ```
-export UVICORN_USER = "fill_me"
-export UVICORN_PASSWORD = "fill_me"
-export UVICORN_HOST = "fill_me"
-export UVICORN_DATABASE = "aquapod"
+export UVICORN_USER="fill_me"
+export UVICORN_PASSWORD="fill_me"
+export UVICORN_HOST="fill_me"
+export UVICORN_DATABASE="aquapod"
 ```
 For Windows Powershell, do:
 ```
