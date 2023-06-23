@@ -98,6 +98,7 @@ class Pump(Base):
     aquapod = relationship("AquaPod", back_populates="pump", uselist=False)
 
     speed = Column(Integer, nullable=False, default=0.0)
+    status = Column(Boolean, nullable=False, default=False)
     working_time = Column(Float, nullable=False, default=0.0)
     alarm_status = Column(String)
 

@@ -18,13 +18,9 @@ logging.basicConfig(level=logging.INFO)
 def vary_coordinates(lat, lon, var=0.0001):
     return lat + random.uniform(-var, var), lon + random.uniform(-var, var)
 
-# Callback function for MQTT client connection
-
 
 def on_connect(client, userdata, flags, rc):
     logging.info("Connected to MQTT broker")
-
-# Callback function for MQTT message publish
 
 
 def on_publish(client, userdata, mid):

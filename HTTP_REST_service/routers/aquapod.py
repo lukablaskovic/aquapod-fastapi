@@ -32,13 +32,8 @@ def get_all_aquapods(db: Session = Depends(get_db)):
 
 @router.get("/{name}", response_model=Optional[schemas.AquaPodWithLatestData], status_code=status.HTTP_200_OK)
 def get_aquapod_by_name(name: str, db: Session = Depends(get_db)):
+    aquapod = search_aquapod(db, name)
     try:
-        aquapod = db.query(models.AquaPod).filter(
-            models.AquaPod.name == name).first()
-
-        if not aquapod:
-            raise HTTPException(
-                status_code=404, detail="Aquapod not found.")
         latest_data = [
             {"component": "video_camera", "data":
              db.query(models.VideoCamera).filter(
@@ -256,7 +251,7 @@ def add_pump_instance(pump: schemas.PumpCreate, name: str, db: Session = Depends
 
 
 @router.patch("/{name}/pump/speed", response_model=schemas.Pump, status_code=status.HTTP_200_OK)
-def update_pump_speed(name: str, speed: int, db: Session = Depends(get_db)):
+def update_pump_speed(update: schemas.PumpSpeedUpdate, name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
 
     # Get the latest pump
@@ -268,11 +263,33 @@ def update_pump_speed(name: str, speed: int, db: Session = Depends(get_db)):
             status_code=404, detail="No pump found for this aquapod")
 
     # Update the pump speed
-    latest_pump.speed = speed
+    latest_pump.speed = update.speed
 
     db.commit()
     db.refresh(latest_pump)
     return latest_pump
+
+
+@router.patch("/{name}/pump/status", response_model=schemas.Pump, status_code=status.HTTP_200_OK)
+def update_pump_status(update: schemas.PumpStatusUpdate, name: str, db: Session = Depends(get_db)):
+    aquapod = search_aquapod(db, name)
+
+    # Get the latest pump
+    latest_pump = db.query(models.Pump).filter(models.Pump.aquapod_id == aquapod.id).order_by(
+        models.Pump.operational_timestamp.desc()).first()
+
+    if not latest_pump:
+        raise HTTPException(
+            status_code=404, detail="No pump found for this aquapod")
+
+    # Update the pump status
+    latest_pump.status = update.status
+
+    db.commit()
+    db.refresh(latest_pump)
+    return latest_pump
+
+
 # BATTERY
 
 

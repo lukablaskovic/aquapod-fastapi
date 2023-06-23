@@ -84,6 +84,7 @@ class TrashContainer(TrashContainerCreate):
 class PumpCreate(BaseModel):
     aquapod_id: Optional[int] = None
     speed: int = 0
+    status: Optional[bool] = False
     working_time: float = 0.0
     alarm_status: Optional[str] = None
     operational_timestamp: Optional[datetime] = None
@@ -95,6 +96,15 @@ class Pump(PumpCreate):
 
     class Config:
         orm_mode = True
+
+
+class PumpSpeedUpdate(BaseModel):
+    speed: int
+
+
+class PumpStatusUpdate(BaseModel):
+    status: bool
+
 
 # BATTERY
 
