@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import text
-from datetime import datetime
 from db import Base
 
 # Schalchemy model - defines what our database looks like, as well as ORM relationships

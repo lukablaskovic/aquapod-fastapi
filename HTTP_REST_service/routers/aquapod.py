@@ -145,7 +145,7 @@ def create_aquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db)
 
 
 @router.get("/{name}/video-camera", response_model=List[schemas.VideoCamera], status_code=status.HTTP_200_OK)
-def get_video_cameras_of_aquapod(name: str, db: Session = Depends(get_db)):
+def get_video_camera_instances(name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
     video_cameras = db.query(models.VideoCamera).filter(
         models.VideoCamera.aquapod_id == aquapod.id).all()
@@ -156,7 +156,7 @@ def get_video_cameras_of_aquapod(name: str, db: Session = Depends(get_db)):
 
 
 @router.post("/{name}/video-camera", response_model=schemas.VideoCamera, status_code=status.HTTP_201_CREATED)
-def create_video_camera_for_aquapod(name: str, db: Session = Depends(get_db)):
+def add_video_camera_instance(name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
     new_video_camera_data = schemas.VideoCameraCreate(
         aquapod_id=aquapod.id, operational_timestamp=datetime.now())
@@ -171,7 +171,7 @@ def create_video_camera_for_aquapod(name: str, db: Session = Depends(get_db)):
 
 # GPS POSITION
 @router.get("/{name}/gps-position", response_model=List[schemas.GPSPosition], status_code=status.HTTP_200_OK)
-def get_gps_positions_of_aquapod(name: str, db: Session = Depends(get_db)):
+def get_gps_position_instances(name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
     gps_positions = db.query(models.GPSPosition).filter(
         models.GPSPosition.aquapod_id == aquapod.id).all()
@@ -182,7 +182,7 @@ def get_gps_positions_of_aquapod(name: str, db: Session = Depends(get_db)):
 
 
 @router.post("/{name}/gps-position", response_model=schemas.GPSPosition, status_code=status.HTTP_201_CREATED)
-async def create_gps_position_for_aquapod(gps_position: schemas.GPSPositionCreate, name: str,  db: Session = Depends(get_db)):
+async def add_gps_position_instance(gps_position: schemas.GPSPositionCreate, name: str,  db: Session = Depends(get_db)):
 
     aquapod = search_aquapod(db, name)
 
@@ -201,7 +201,7 @@ async def create_gps_position_for_aquapod(gps_position: schemas.GPSPositionCreat
 
 
 @router.get("/{name}/trash-container", response_model=List[schemas.TrashContainer], status_code=status.HTTP_200_OK)
-def get_trash_container_of_aquapod(name: str, db: Session = Depends(get_db)):
+def get_trash_container_instances(name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
     trash_containers = db.query(models.TrashContainer).filter(
         models.TrashContainer.aquapod_id == aquapod.id).all()
@@ -212,7 +212,7 @@ def get_trash_container_of_aquapod(name: str, db: Session = Depends(get_db)):
 
 
 @router.post("/{name}/trash-container", response_model=schemas.TrashContainer, status_code=status.HTTP_201_CREATED)
-def create_trash_container_for_aquapod(trash_container: schemas.TrashContainerCreate, name: str, db: Session = Depends(get_db)):
+def add_trash_container_instance(trash_container: schemas.TrashContainerCreate, name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
 
     trash_container.aquapod_id = aquapod.id
@@ -229,7 +229,7 @@ def create_trash_container_for_aquapod(trash_container: schemas.TrashContainerCr
 
 # PUMP
 @router.get("/{name}/pump", response_model=List[schemas.Pump], status_code=status.HTTP_200_OK)
-def get_pump_of_aquapod(name: str, db: Session = Depends(get_db)):
+def get_pump_instances(name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
     pumps = db.query(models.Pump).filter(
         models.Pump.aquapod_id == aquapod.id).all()
@@ -240,7 +240,7 @@ def get_pump_of_aquapod(name: str, db: Session = Depends(get_db)):
 
 
 @router.post("/{name}/pump", response_model=schemas.Pump, status_code=status.HTTP_201_CREATED)
-def create_pump_for_aquapod(pump: schemas.PumpCreate, name: str, db: Session = Depends(get_db)):
+def add_pump_instance(pump: schemas.PumpCreate, name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
 
     pump.aquapod_id = aquapod.id
@@ -254,11 +254,30 @@ def create_pump_for_aquapod(pump: schemas.PumpCreate, name: str, db: Session = D
     db.refresh(new_pump)
     return new_pump
 
+
+@router.patch("/{name}/pump/speed", response_model=schemas.Pump, status_code=status.HTTP_200_OK)
+def update_pump_speed(name: str, speed: int, db: Session = Depends(get_db)):
+    aquapod = search_aquapod(db, name)
+
+    # Get the latest pump
+    latest_pump = db.query(models.Pump).filter(models.Pump.aquapod_id == aquapod.id).order_by(
+        models.Pump.operational_timestamp.desc()).first()
+
+    if not latest_pump:
+        raise HTTPException(
+            status_code=404, detail="No pump found for this aquapod")
+
+    # Update the pump speed
+    latest_pump.speed = speed
+
+    db.commit()
+    db.refresh(latest_pump)
+    return latest_pump
 # BATTERY
 
 
 @router.get("/{name}/battery", response_model=List[schemas.Battery], status_code=status.HTTP_200_OK)
-def get_battery_of_aquapod(name: str, db: Session = Depends(get_db)):
+def get_battery_instances(name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
     batteries = db.query(models.Battery).filter(
         models.Battery.aquapod_id == aquapod.id).all()
@@ -269,7 +288,7 @@ def get_battery_of_aquapod(name: str, db: Session = Depends(get_db)):
 
 
 @router.post("/{name}/battery", response_model=schemas.Battery, status_code=status.HTTP_201_CREATED)
-def create_battery_for_aquapod(battery: schemas.BatteryCreate, name: str, db: Session = Depends(get_db)):
+def add_batery_instance(battery: schemas.BatteryCreate, name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
 
     battery.aquapod_id = aquapod.id
@@ -288,7 +307,7 @@ def create_battery_for_aquapod(battery: schemas.BatteryCreate, name: str, db: Se
 
 
 @router.get("/{name}/solar-panel", response_model=List[schemas.SolarPanel], status_code=status.HTTP_200_OK)
-def get_solar_panel_of_aquapod(name: str, db: Session = Depends(get_db)):
+def get_solar_panel_instances(name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
     solar_panels = db.query(models.SolarPanel).filter(
         models.SolarPanel.aquapod_id == aquapod.id).all()
@@ -299,7 +318,7 @@ def get_solar_panel_of_aquapod(name: str, db: Session = Depends(get_db)):
 
 
 @router.post("/{name}/solar-panel", response_model=schemas.SolarPanel, status_code=status.HTTP_201_CREATED)
-def create_solar_panel_for_aquapod(solar_panel: schemas.SolarPanelCreate, name: str, db: Session = Depends(get_db)):
+def add_solar_panel_instance(solar_panel: schemas.SolarPanelCreate, name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
 
     solar_panel.aquapod_id = aquapod.id
@@ -317,7 +336,7 @@ def create_solar_panel_for_aquapod(solar_panel: schemas.SolarPanelCreate, name: 
 
 
 @router.get("/{name}/environment", response_model=List[schemas.Environment], status_code=status.HTTP_200_OK)
-def get_environment_of_aquapod(name: str, db: Session = Depends(get_db)):
+def get_environment_instances(name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
     environments = db.query(models.Environment).filter(
         models.Environment.aquapod_id == aquapod.id).all()
@@ -328,7 +347,7 @@ def get_environment_of_aquapod(name: str, db: Session = Depends(get_db)):
 
 
 @router.post("/{name}/environment", response_model=schemas.Environment, status_code=status.HTTP_201_CREATED)
-def create_environment_for_aquapod(environment: schemas.EnvironmentCreate, name: str, db: Session = Depends(get_db)):
+def add_environment_instance(environment: schemas.EnvironmentCreate, name: str, db: Session = Depends(get_db)):
 
     aquapod = search_aquapod(db, name)
 
