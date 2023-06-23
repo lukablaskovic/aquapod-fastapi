@@ -26,4 +26,4 @@ def root():
 app.include_router(aquapod.router)
 app.include_router(user.router)
 app.include_router(auth.router)
-# Run with uvicorn main:app --reload
+# Run with: uvicorn main:app --reload

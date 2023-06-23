@@ -2,7 +2,11 @@ from fastapi import FastAPI
 from fastapi_mqtt import FastMQTT, MQTTConfig
 from mqtt_config import CONFIG_PARAMS
 import json
+import asyncio
+import aiohttp
+
 app = FastAPI()
+REST_API_URL = "http://localhost:8000"
 
 mqtt_config = MQTTConfig(CONFIG_PARAMS)
 
@@ -11,6 +15,17 @@ MQTT = FastMQTT(
 )
 
 MQTT.init_app(app)
+
+
+@app.on_event("startup")
+async def startup_event():
+    global session
+    session = aiohttp.ClientSession()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await session.close()
 
 
 @MQTT.on_connect()
@@ -23,17 +38,21 @@ def connect(client, flags, rc, properties):
 def disconnect(client, packet, exc=None):
     print("AquaPod FastMQTT Client - Disconnected")
 
+# On message received from the client, send request to HTTP_REST_service
+
 
 @MQTT.subscribe("/aquapods/+/+")
 async def handle_messages(client, topic, payload, qos, properties):
-    data = (payload.decode())
-    # Now you can process the sensor data
+    data = json.loads(payload.decode())
 
-
-@MQTT.on_message()
-async def message(client, topic, payload, qos, properties):
-    print("Received message: ", topic, payload.decode(), qos, properties)
-    data = json.loads(payload.decode())  # decode JSON payload
+    url = REST_API_URL + topic
     print(data)
+    resp_text = await send_data(url, data)
+    print(resp_text)
 
-# uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+
+async def send_data(url: str, data: dict):
+    async with session.post(url, json=data) as resp:
+        return await resp.text()
+
+# Run with: uvicorn main:app --host 0.0.0.0 --port 8001 --reload

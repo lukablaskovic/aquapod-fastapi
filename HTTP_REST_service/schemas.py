@@ -49,10 +49,10 @@ class VideoCamera(VideoCameraCreate):
 
 
 class GPSPositionCreate(BaseModel):
-    aquapod_id: int
+    aquapod_id: Optional[int] = None
     latitude: float = 0.0
     longitude: float = 0.0
-    operational_timestamp: datetime
+    operational_timestamp: Optional[datetime] = None
 
 
 class GPSPosition(GPSPositionCreate):
@@ -67,9 +67,9 @@ class GPSPosition(GPSPositionCreate):
 
 
 class TrashContainerCreate(BaseModel):
-    aquapod_id: int
+    aquapod_id: Optional[int] = None
     garbage_filled: float = 0.0
-    operational_timestamp: datetime
+    operational_timestamp: Optional[datetime] = None
 
 
 class TrashContainer(TrashContainerCreate):
@@ -82,11 +82,11 @@ class TrashContainer(TrashContainerCreate):
 
 
 class PumpCreate(BaseModel):
-    aquapod_id: int
+    aquapod_id: Optional[int] = None
     speed: int = 0
     working_time: float = 0.0
     alarm_status: Optional[str] = None
-    operational_timestamp: datetime
+    operational_timestamp: Optional[datetime] = None
 
 
 class Pump(PumpCreate):
@@ -100,13 +100,13 @@ class Pump(PumpCreate):
 
 
 class BatteryCreate(BaseModel):
-    aquapod_id: int
+    aquapod_id: Optional[int] = None
     charge_current: float = 0.0
     discharge_current: float = 0.0
     voltage: float = 0.0
     capacity: float = 0.0
     cycle_count: int = 0
-    operational_timestamp: datetime
+    operational_timestamp: Optional[datetime] = None
 
 
 class Battery(BatteryCreate):
@@ -123,12 +123,12 @@ class Battery(BatteryCreate):
 
 
 class SolarPanelCreate(BaseModel):
-    aquapod_id: int
+    aquapod_id: Optional[int] = None
     insolation: float = 0.0
     voltage: float = 0.0
     utilization: float = 0.0
     working_time: float = 0.0
-    operational_timestamp: datetime
+    operational_timestamp: Optional[datetime] = None
 
 
 class SolarPanel(SolarPanelCreate):
@@ -144,14 +144,14 @@ class SolarPanel(SolarPanelCreate):
 
 
 class EnvironmentCreate(BaseModel):
-    aquapod_id: int
+    aquapod_id: Optional[int] = None
     sea_depth: float = 0.0
     sea_temperature: float = 0.0
     sea_ph: float = 0.0
     wind_direction: float = 0.0
     wind_power: float = 0.0
     air_temperature: float = 0.0
-    operational_timestamp: datetime
+    operational_timestamp: Optional[datetime] = None
 
 
 class Environment(EnvironmentCreate):

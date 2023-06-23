@@ -4,13 +4,13 @@ import time
 
 
 def on_connect(client, userdata, flags, rc):
-    longitude = 77.5945627
-    latitude = 12.9715987
+    latitude = 77.5945627
+    longitude = 12.9715987
     message = {
-        "longitude": latitude,
-        "latitude": longitude
+        "latitude": latitude,
+        "longitude": longitude
     }
-    client.publish("/aquapods/Pula/GPSPosition", json.dumps(message))
+    client.publish("/aquapods/Pula/gps-position", json.dumps(message))
 
 
 def on_publish(client, userdata, mid):
