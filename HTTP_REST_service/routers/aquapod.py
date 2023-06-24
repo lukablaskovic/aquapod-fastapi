@@ -15,6 +15,17 @@ router = APIRouter(
     tags=["AquaPod"]
 )
 
+
+def search_aquapod(db: Session, name: str):
+    aquapod = db.query(models.AquaPod).filter(
+        models.AquaPod.name == name).first()
+
+    if aquapod is None:
+        raise HTTPException(
+            status_code=404, detail=f"Aquapod '{name}' not found"
+        )
+    return aquapod
+
 # Return all aquapods
 
 
@@ -103,7 +114,7 @@ def create_aquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db)
             **trash_container_data.dict())
         db.add(new_trash_container)
 
-        # Pump(aquapod_id, speed(RPM)=0.0, working_time=0.00(min), alarm_status=null)
+        # Pump(aquapod_id, speed(RPM)=0.0, status = false, working_time=0.00(min), alarm_status=null)
         pump_data = schemas.PumpCreate(
             aquapod_id=new_aquapod.id, operational_timestamp=datetime.now())
         new_pump = models.Pump(**pump_data.dict())
@@ -250,6 +261,8 @@ def add_pump_instance(pump: schemas.PumpCreate, name: str, db: Session = Depends
     return new_pump
 
 
+# Pump controls
+
 @router.patch("/{name}/pump/speed", response_model=schemas.Pump, status_code=status.HTTP_200_OK)
 def update_pump_speed(update: schemas.PumpSpeedUpdate, name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
@@ -378,14 +391,3 @@ def add_environment_instance(environment: schemas.EnvironmentCreate, name: str, 
     db.commit()
     db.refresh(new_environment)
     return new_environment
-
-
-def search_aquapod(db: Session, name: str):
-    aquapod = db.query(models.AquaPod).filter(
-        models.AquaPod.name == name).first()
-
-    if aquapod is None:
-        raise HTTPException(
-            status_code=404, detail=f"Aquapod '{name}' not found"
-        )
-    return aquapod
