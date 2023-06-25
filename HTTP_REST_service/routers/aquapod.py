@@ -181,12 +181,14 @@ def get_video_camera_instances(name: str, db: Session = Depends(get_db)):
 
 
 @router.post("/{name}/video-camera", response_model=schemas.VideoCamera, status_code=status.HTTP_201_CREATED)
-def add_video_camera_instance(name: str, db: Session = Depends(get_db)):
+def add_video_camera_instance(video_camera: schemas.VideoCameraCreate, name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
-    new_video_camera_data = schemas.VideoCameraCreate(
-        aquapod_id=aquapod.id, operational_timestamp=datetime.now())
+
+    video_camera.aquapod_id = aquapod.id
+    video_camera.operational_timestamp = datetime.now()
+
     new_video_camera = models.VideoCamera(
-        **new_video_camera_data.dict())
+        **video_camera.dict())
 
     db.add(new_video_camera)
     db.commit()

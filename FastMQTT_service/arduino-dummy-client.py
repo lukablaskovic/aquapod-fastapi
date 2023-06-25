@@ -89,6 +89,7 @@ def main_test_movement():
     # Simulate AquaPod movement by publishing new GPS position every 5 seconds
     try:
         while True:
+            logging.info("I'm sailin on the sea! 🚢")
             latitude, longitude = vary_coordinates(latitude, longitude)
             message = {
                 "latitude": latitude,

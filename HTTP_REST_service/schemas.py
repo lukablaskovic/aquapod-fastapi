@@ -32,11 +32,11 @@ class AquaPodWithLatestData(AquaPodBase):
 
 
 class VideoCameraCreate(BaseModel):
-    aquapod_id: int
+    aquapod_id: Optional[int] = None
     status: bool = False
     pan: float = 0.0
     zoom: float = 0.0
-    operational_timestamp: datetime
+    operational_timestamp: Optional[datetime] = None
 
 
 class VideoCamera(VideoCameraCreate):
@@ -47,9 +47,10 @@ class VideoCamera(VideoCameraCreate):
 
 
 class VideoCameraUpdate(BaseModel):
+    status: Optional[bool] = None
     pan: Optional[float] = None
     zoom: Optional[float] = None
-    status: Optional[bool] = None
+
 
 # GPS POSITION
 
