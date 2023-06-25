@@ -11,11 +11,37 @@
 
 This repository comprises two distinct services:
 
-1. **HTTP_REST_service**: This service interfaces with the AquaPod frontend Vue application. It's responsible for relaying HTTP requests and responses between the Vue application and the FastAPI server.
+1. `HTTP_REST_service`: This service interfaces with the AquaPod frontend Vue application. It's responsible for relaying HTTP requests and responses between the Vue application and the FastAPI server.
 
-2. **FastMQTT_service**: This service communicates with the Arduino onboard the AquaPod boat. It uses the MQTT protocol, a lightweight messaging protocol often used in IoT systems, to send and receive data to and from the Arduino.
+2. `FastMQTT_service`: This service communicates with the Arduino onboard the AquaPod boat. It uses the MQTT protocol, a lightweight messaging protocol often used in IoT systems, to send and receive data to and from the Arduino.
 
 <hr />
+
+<figure>
+  <img
+  src="aquapod_diagram.png?raw=true"
+  alt="Encryption with MQTT.">
+</figure>
+<hr />
+
+The **AquaPod** system is comprised of several elements as depicted in the diagram above. These elements can be categorized based on their location and function:
+
+**Included in this repository:**
+
+- `HTTP REST API Service`: Handles the server-side operations of the system.
+- `PostgreSQL database`: Stores all the essential data.
+- `Pytest Service`: Used for testing the components of the system.
+- `IoT Edge FastMQTT Service`: Manages MQTT messaging for IoT devices.
+
+**External to this repository:**
+
+- `VUE.js Frontend Application`: Handles the client-side operations of the system.
+- `AquaPod Arduino`: The hardware component that interacts with the system.
+
+**Others:**
+
+- `Cloud CDN`: Assists in the delivery of video content across the system.
+- `MQTT IoT Core Broker`: Manages MQTT messaging for IoT devices. 
 
 ### Install all the modules first:
 ```bash
@@ -50,12 +76,6 @@ By default, HTTP_REST_service runs on port 8000.
 
 ## FastMQTT_service
 The AquaPod, running on Arduino (**Node A**), connects to an MQTT broker and publishes data to it. The FastAPI server (**Node B**), subscribed to the relevant topics on the MQTT broker, receives this data for further processing and use in the application.
-<figure>
-  <img
-  src="https://docs.arduino.cc/static/9eebc9b3f4e70e29dbcbfed169496262/4ef49/UnoWiFiRev2_T2_IMG01.png"
-  alt="Encryption with MQTT.">
-  <figcaption>Encryption with MQTT - docs.arduino.cc</figcaption>
-</figure>
 
 ### MQTT broker - Mosquitto
 The MQTT protocol operates on a client/server model. The broker (server) is essential as it routes messages between clients based on the topics of messages.
