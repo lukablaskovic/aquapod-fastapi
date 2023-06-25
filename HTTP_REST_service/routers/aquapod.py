@@ -10,6 +10,7 @@ import httpx
 from datetime import datetime
 
 from db import get_db
+import oauth2
 
 FASTMQTT_SERVICE_URL = "http://localhost:8001"
 
@@ -99,7 +100,13 @@ def get_aquapod_by_name(name: str, db: Session = Depends(get_db)):
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_aquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db)):
+def create_aquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
+
+    aquapod_in_db = db.query(models.AquaPod).filter(
+        models.AquaPod.name == aquapod.name).first()
+    if aquapod_in_db:
+        raise HTTPException(
+            status_code=400, detail="Aquapod already exists with this name.")
     try:
         new_aquapod = models.AquaPod(**aquapod.dict())
         db.add(new_aquapod)
@@ -155,6 +162,7 @@ def create_aquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db)
         db.refresh(new_aquapod)
 
     except Exception as e:
+        db.rollback()
         raise HTTPException(
             status_code=500, detail=f"An error occurred. {e}")
     return new_aquapod
@@ -306,7 +314,7 @@ def add_pump_instance(pump: schemas.PumpCreate, name: str, db: Session = Depends
 # Pump controls
 
 @router.patch("/{name}/pump/{update_att}", response_model=schemas.Pump, status_code=status.HTTP_200_OK)
-async def update_pump_speed(update: schemas.PumpUpdate, name: str, update_att: str, db: Session = Depends(get_db)):
+async def update_pump(update: schemas.PumpUpdate, name: str, update_att: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
 
     # Get the latest pump

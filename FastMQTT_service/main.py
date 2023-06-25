@@ -1,12 +1,11 @@
 from fastapi import FastAPI
 from fastapi_mqtt import FastMQTT, MQTTConfig
-from FastMQTT_service.mqtt_config import CONFIG_PARAMS
+from FastMQTT_service.mqtt_config import CONFIG_PARAMS, REST_API_URL
 import json
 import asyncio
 import aiohttp
 
 app = FastAPI()
-REST_API_URL = "http://localhost:8000"
 
 mqtt_config = MQTTConfig(CONFIG_PARAMS)
 

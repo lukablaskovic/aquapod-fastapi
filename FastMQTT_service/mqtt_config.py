@@ -4,3 +4,5 @@ CONFIG_PARAMS = dict(
     keepalive=60,  # seconds
     username=None,
     password=None)
+
+REST_API_URL = "http://localhost:8000"
