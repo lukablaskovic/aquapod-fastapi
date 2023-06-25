@@ -1,6 +1,19 @@
 from pydantic import BaseSettings
+import os
 
 
 class Settings(BaseSettings):
-    app_name: str = "AquaPod HTTP REST-API",
-    admin_email: str = "luka.blaskovic@student.unipu.hr"
+    db_hostname: str
+    db_port: int
+    db_password: str
+    db_name: str
+    db_username: str
+    secret_key: str
+    algorithm: str
+    access_token_expire_minutes: int
+
+    class Config:
+        env_file = ".env"
+
+
+settings = Settings()

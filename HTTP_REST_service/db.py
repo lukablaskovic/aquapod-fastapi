@@ -1,14 +1,14 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
+from config import settings
 
 DB = {
     "provider": "postgres",
-    "user": os.getenv("UVICORN_USER"),
-    "password": os.getenv("UVICORN_PASSWORD"),
-    "host": os.getenv("UVICORN_HOST"),
-    "database": os.getenv("UVICORN_DATABASE")
+    "user": settings.db_username,
+    "password": settings.db_password,
+    "host": settings.db_hostname,
+    "database": settings.db_name,
 }
 print(DB)
 

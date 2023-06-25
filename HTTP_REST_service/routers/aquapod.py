@@ -100,8 +100,7 @@ def get_aquapod_by_name(name: str, db: Session = Depends(get_db)):
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_aquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
-
+def create_aquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     aquapod_in_db = db.query(models.AquaPod).filter(
         models.AquaPod.name == aquapod.name).first()
     if aquapod_in_db:
