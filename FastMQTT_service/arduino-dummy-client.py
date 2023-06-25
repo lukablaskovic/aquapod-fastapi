@@ -21,6 +21,12 @@ def vary_coordinates(lat, lon, var=0.0001):
 
 def on_connect(client, userdata, flags, rc):
     logging.info("Connected to MQTT broker")
+    client.subscribe("/aquapods/Pula/pump/+")
+
+
+def on_message(client, userdata, message):
+    print(
+        f"Received message '{message.payload}' on topic '{message.topic}' with QoS {message.qos}")
 
 
 def on_publish(client, userdata, mid):
@@ -29,12 +35,41 @@ def on_publish(client, userdata, mid):
 # Main function
 
 
-def main():
+def main_test_pump_control():
+    client = mqtt.Client()
+    client.on_connect = on_connect
+    client.on_message = on_message  # Set the message callback
+    client.on_publish = on_publish
+
+    client.enable_logger()
+
+    # Connect to the broker
+    try:
+        client.connect(broker_address, broker_port, timeout)
+    except Exception as e:
+        print(f"Could not connect to MQTT broker: {e}")
+        return
+
+    # Start the client loop
+    client.loop_start()
+
+    try:
+        while True:
+            logging.info("I'm sailin on the sea! 🚢")
+            time.sleep(5)
+            pass
+
+    except KeyboardInterrupt:
+        client.loop_stop()
+        client.disconnect()
+        logging.info("Service stopped")
+
+
+def main_test_movement():
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_publish = on_publish
 
-    # Enable MQTT client logger
     client.enable_logger()
 
     # Connect to the broker
@@ -72,8 +107,8 @@ def main():
     except KeyboardInterrupt:
         client.loop_stop()
         client.disconnect()
-        logging.info("Script stopped")
+        logging.info("Service stopped")
 
 
 if __name__ == "__main__":
-    main()
+    main_test_pump_control()

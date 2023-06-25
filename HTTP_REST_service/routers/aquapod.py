@@ -5,10 +5,13 @@ from sqlalchemy.orm import Session
 import models
 import schemas
 import utils
-
+import json
+import httpx
 from datetime import datetime
 
 from db import get_db
+
+FASTMQTT_SERVICE_URL = "http://localhost:8001"
 
 router = APIRouter(
     prefix="/aquapods",
@@ -27,6 +30,15 @@ def search_aquapod(db: Session, name: str):
     return aquapod
 
 # Return all aquapods
+
+
+async def call_publish_message_service(topic: str, payload: dict):
+    # URL of the service that publishes to the MQTT broker
+    url = FASTMQTT_SERVICE_URL
+    params = {"topic": topic, "payload": json.dumps(payload)}
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, params=params)
+    return response
 
 
 @router.get("/", response_model=List[schemas.Aquapod], status_code=status.HTTP_200_OK)
@@ -264,7 +276,7 @@ def add_pump_instance(pump: schemas.PumpCreate, name: str, db: Session = Depends
 # Pump controls
 
 @router.patch("/{name}/pump/speed", response_model=schemas.Pump, status_code=status.HTTP_200_OK)
-def update_pump_speed(update: schemas.PumpSpeedUpdate, name: str, db: Session = Depends(get_db)):
+async def update_pump_speed(update: schemas.PumpSpeedUpdate, name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
 
     # Get the latest pump
@@ -278,13 +290,17 @@ def update_pump_speed(update: schemas.PumpSpeedUpdate, name: str, db: Session = 
     # Update the pump speed
     latest_pump.speed = update.speed
 
+    # Publish the update to the MQTT service
+    await call_publish_message_service(
+        f"/aquapods/{name}/pump/speed", update.speed)
+
     db.commit()
     db.refresh(latest_pump)
     return latest_pump
 
 
 @router.patch("/{name}/pump/status", response_model=schemas.Pump, status_code=status.HTTP_200_OK)
-def update_pump_status(update: schemas.PumpStatusUpdate, name: str, db: Session = Depends(get_db)):
+async def update_pump_status(update: schemas.PumpStatusUpdate, name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
 
     # Get the latest pump
@@ -297,6 +313,10 @@ def update_pump_status(update: schemas.PumpStatusUpdate, name: str, db: Session 
 
     # Update the pump status
     latest_pump.status = update.status
+
+    # Publish the update to the MQTT service
+    await call_publish_message_service(
+        f"/aquapods/{name}/pump/status", update.status)
 
     db.commit()
     db.refresh(latest_pump)
