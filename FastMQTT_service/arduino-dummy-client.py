@@ -20,13 +20,13 @@ def vary_coordinates(lat, lon, var=0.0001):
 
 
 def on_connect(client, userdata, flags, rc):
-    logging.info("Connected to MQTT broker")
+    logging.info("✅ Connected to MQTT broker")
     client.subscribe("/aquapods/Pula/pump/+")
 
 
 def on_message(client, userdata, message):
     print(
-        f"Received message '{message.payload}' on topic '{message.topic}' with QoS {message.qos}")
+        f"ℹ️ Received message '{message.payload}' on topic '{message.topic}' with QoS {message.qos}")
 
 
 def on_publish(client, userdata, mid):
@@ -47,7 +47,7 @@ def main_test_pump_control():
     try:
         client.connect(broker_address, broker_port, timeout)
     except Exception as e:
-        print(f"Could not connect to MQTT broker: {e}")
+        print(f"❌ Could not connect to MQTT broker: {e}")
         return
 
     # Start the client loop

@@ -33,7 +33,7 @@ class AquaPodWithLatestData(AquaPodBase):
 
 class VideoCameraCreate(BaseModel):
     aquapod_id: int
-    is_on: bool = False
+    status: bool = False
     pan: float = 0.0
     zoom: float = 0.0
     operational_timestamp: datetime
@@ -44,6 +44,12 @@ class VideoCamera(VideoCameraCreate):
 
     class Config:
         orm_mode = True
+
+
+class VideoCameraUpdate(BaseModel):
+    pan: Optional[float] = None
+    zoom: Optional[float] = None
+    status: Optional[bool] = None
 
 # GPS POSITION
 
@@ -98,12 +104,9 @@ class Pump(PumpCreate):
         orm_mode = True
 
 
-class PumpSpeedUpdate(BaseModel):
-    speed: int
-
-
-class PumpStatusUpdate(BaseModel):
-    status: bool
+class PumpUpdate(BaseModel):
+    speed: Optional[int] = None
+    status: Optional[bool] = None
 
 
 # BATTERY

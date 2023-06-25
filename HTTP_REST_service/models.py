@@ -44,7 +44,7 @@ class VideoCamera(Base):
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
     aquapod = relationship("AquaPod", back_populates="video_camera")
 
-    is_on = Column(Boolean, nullable=False, default=False)
+    status = Column(Boolean, nullable=False, default=False)
     pan = Column(Float, nullable=False, default=0.0)
     zoom = Column(Float, nullable=False, default=0.0)
 

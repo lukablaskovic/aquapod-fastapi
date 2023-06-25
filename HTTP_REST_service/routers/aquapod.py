@@ -107,7 +107,7 @@ def create_aquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db)
 
         # create components for aquapod
 
-        # VideoCamera(aquapod_id, is_on=false, pan=0.0, zoom=0.0)
+        # VideoCamera(aquapod_id, status=false, pan=0.0, zoom=0.0)
         video_camera_data = schemas.VideoCameraCreate(
             aquapod_id=new_aquapod.id, operational_timestamp=datetime.now())
         new_video_camera = models.VideoCamera(**video_camera_data.dict())
@@ -187,7 +187,37 @@ def add_video_camera_instance(name: str, db: Session = Depends(get_db)):
     return new_video_camera
 
 
+@router.patch("/{name}/video-camera/{update_att}", response_model=schemas.VideoCamera, status_code=status.HTTP_200_OK)
+async def update_video_camera(update: schemas.VideoCameraUpdate, name: str, update_att: str, db: Session = Depends(get_db)):
+    aquapod = search_aquapod(db, name)
+
+    # Get the video camera
+    latest_video_camera = db.query(models.VideoCamera).filter(models.VideoCamera.aquapod_id == aquapod.id).order_by(
+        models.VideoCamera.operational_timestamp.desc()).first()
+
+    if not latest_video_camera:
+        raise HTTPException(
+            status_code=404, detail="No Video Camera found for this aquapod")
+
+    # Check if the update attribute is valid
+    if update_att not in ["pan", "zoom", "status"]:
+        raise HTTPException(
+            status_code=400, detail="Invalid attribute to update. Allowed attributes are: 'pan', 'zoom', 'status'.")
+
+    # Update the pump attribute and publish the message
+    update_value = getattr(update, update_att)
+    if update_value is not None:
+        setattr(latest_video_camera, update_att, update_value)
+        await call_publish_message_service(
+            f"/aquapods/{name}/video-camera/{update_att}", update_value)
+
+    db.commit()
+    db.refresh(latest_video_camera)
+    return latest_video_camera
+
 # GPS POSITION
+
+
 @router.get("/{name}/gps-position", response_model=List[schemas.GPSPosition], status_code=status.HTTP_200_OK)
 def get_gps_position_instances(name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
@@ -275,8 +305,8 @@ def add_pump_instance(pump: schemas.PumpCreate, name: str, db: Session = Depends
 
 # Pump controls
 
-@router.patch("/{name}/pump/speed", response_model=schemas.Pump, status_code=status.HTTP_200_OK)
-async def update_pump_speed(update: schemas.PumpSpeedUpdate, name: str, db: Session = Depends(get_db)):
+@router.patch("/{name}/pump/{update_att}", response_model=schemas.Pump, status_code=status.HTTP_200_OK)
+async def update_pump_speed(update: schemas.PumpUpdate, name: str, update_att: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
 
     # Get the latest pump
@@ -287,41 +317,21 @@ async def update_pump_speed(update: schemas.PumpSpeedUpdate, name: str, db: Sess
         raise HTTPException(
             status_code=404, detail="No pump found for this aquapod")
 
-    # Update the pump speed
-    latest_pump.speed = update.speed
-
-    # Publish the update to the MQTT service
-    await call_publish_message_service(
-        f"/aquapods/{name}/pump/speed", update.speed)
-
-    db.commit()
-    db.refresh(latest_pump)
-    return latest_pump
-
-
-@router.patch("/{name}/pump/status", response_model=schemas.Pump, status_code=status.HTTP_200_OK)
-async def update_pump_status(update: schemas.PumpStatusUpdate, name: str, db: Session = Depends(get_db)):
-    aquapod = search_aquapod(db, name)
-
-    # Get the latest pump
-    latest_pump = db.query(models.Pump).filter(models.Pump.aquapod_id == aquapod.id).order_by(
-        models.Pump.operational_timestamp.desc()).first()
-
-    if not latest_pump:
+    # Check if the update attribute is valid
+    if update_att not in ["speed", "status"]:
         raise HTTPException(
-            status_code=404, detail="No pump found for this aquapod")
+            status_code=400, detail="Invalid attribute to update. Allowed attributes are 'speed' and 'status'.")
 
-    # Update the pump status
-    latest_pump.status = update.status
-
-    # Publish the update to the MQTT service
-    await call_publish_message_service(
-        f"/aquapods/{name}/pump/status", update.status)
+    # Update the pump attribute and publish the message
+    update_value = getattr(update, update_att)
+    if update_value is not None:
+        setattr(latest_pump, update_att, update_value)
+        await call_publish_message_service(
+            f"/aquapods/{name}/pump/{update_att}", update_value)
 
     db.commit()
     db.refresh(latest_pump)
     return latest_pump
-
 
 # BATTERY
 
