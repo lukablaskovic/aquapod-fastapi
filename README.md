@@ -43,6 +43,10 @@ The **AquaPod** system is comprised of several elements as depicted in the diagr
 - `Cloud CDN`: Assists in the delivery of video content across the system.
 - `MQTT IoT Core Broker`: Manages MQTT messaging for IoT devices. 
 
+<hr />
+
+# How to run?
+
 ### Install all the modules first:
 ```bash
 pip install -r requirements.txt
