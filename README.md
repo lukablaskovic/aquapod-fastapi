@@ -66,13 +66,17 @@ uvicorn main:app --reload
 
 ```bash
 ### Environment variables:
-Linux, macOS, Windows Bash
+Set environment variables inside HTTP_REST_service/.env
 
-export UVICORN_USER="fillme" \
-export UVICORN_PASSWORD="fillme" \
-export  UVICORN_HOST="fillme" \
-export UVICORN_DATABASE="aquapod" \
-export JWT_SECRET=fillme
+DB_HOSTNAME=fillme
+DB_USERNAME=fillme
+DB_PASSWORD=fillme
+DB_NAME=aquapod
+DB_PORT=fillme
+SECRET_KEY=fillme
+ALGORITHM=fillme
+ACCESS_TOKEN_EXPIRE_MINUTES=fillme
+
 ```
 By default, HTTP_REST_service runs on port 8000.
 
