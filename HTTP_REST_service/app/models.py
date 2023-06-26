@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import text
-from db import Base
+from .db import Base
 
 # Schalchemy model - defines what our database looks like, as well as ORM relationships
 
@@ -81,7 +81,7 @@ class TrashContainer(Base):
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
     garbage_filled = Column(Float, nullable=False, default=0.0)
-
+    garbage_collected_total = Column(Float, nullable=False, default=0.0)
     aquapod = relationship(
         "AquaPod", back_populates="trash_container", uselist=False)
 

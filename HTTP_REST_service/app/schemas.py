@@ -76,6 +76,7 @@ class GPSPosition(GPSPositionCreate):
 class TrashContainerCreate(BaseModel):
     aquapod_id: Optional[int] = None
     garbage_filled: float = 0.0
+    garbage_collected_total: float = 0.0
     operational_timestamp: Optional[datetime] = None
 
 

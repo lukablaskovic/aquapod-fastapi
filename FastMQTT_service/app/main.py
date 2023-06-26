@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi_mqtt import FastMQTT, MQTTConfig
-from FastMQTT_service.mqtt_config import CONFIG_PARAMS, REST_API_URL
+from .mqtt_config import CONFIG_PARAMS, REST_API_URL
 import json
-import asyncio
 import aiohttp
 
 app = FastAPI()
@@ -69,4 +68,4 @@ async def send_data(url: str, data: dict):
     async with session.post(url, json=data) as resp:
         return await resp.text()
 
-# Run with: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+# Run with: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload

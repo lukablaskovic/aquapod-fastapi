@@ -1,8 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
 from fastapi import status
-from HTTP_REST_service import schemas
-from HTTP_REST_service.main import app
+
+from HTTP_REST_service.app.main import app
+from HTTP_REST_service.app import schemas
 
 
 client = TestClient(app)
@@ -67,15 +68,18 @@ def test_get_aquapod_by_name():
         assert isinstance(component_data['component'], str)
 
 
-test_aquapod = "Porec"
+test_aquapod = "TestPod"
 
 
 def test_create_aquapod(mock_db_session, mocker):
-    mocker.patch('HTTP_REST_service.main.get_db',
+    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VyX2VtYWlsIjoiYWRtaW5AbWFzZXJ2aXMuaHIiLCJleHAiOjE2ODgwMDM2MDB9.OaSoB9cWS0iYigjtI_YEcPk_ZocYw4ejnF8GfAkzx8g"
+    headers = {"Authorization": f"Bearer {token}"}
+
+    mocker.patch('HTTP_REST_service.app.main.get_db',
                  return_value=mock_db_session)
     payload = schemas.AquaPodCreate(
         name=test_aquapod,
     )
 
-    response = client.post("/aquapods/", json=payload.dict())
+    response = client.post("/aquapods/", headers=headers, json=payload.dict())
     assert response.status_code == 201
