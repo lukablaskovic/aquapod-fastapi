@@ -1,5 +1,6 @@
 from fastapi import APIRouter, status, HTTPException, Depends
 from typing import Optional, List
+from sqlalchemy.orm import joinedload
 
 import json
 import httpx
@@ -58,7 +59,7 @@ async def get_all_aquapods(name: Optional[str] = None, db: Session = Depends(get
     aquapod_public_list = []
     for ap in aquapods:
         # Query environment for this aquapod
-        environment = db.query(models.Environment).filter(
+        environment = db.query(models.Environment).options(joinedload(models.Environment.wind_direction_unit)).options(joinedload(models.Environment.wind_power_unit)).options(joinedload(models.Environment.air_temperature_unit)).options(joinedload(models.Environment.sea_depth_unit)).options(joinedload(models.Environment.sea_temperature_unit)).options(joinedload(models.Environment.sea_ph_unit)).filter(
             models.Environment.aquapod_id == ap.id).order_by(
             models.Environment.id.desc()).first()
 
@@ -83,27 +84,27 @@ def get_aquapod_by_name(name: str, db: Session = Depends(get_db), current_user: 
                  models.VideoCamera.aquapod_id == aquapod.id).order_by(
                  models.VideoCamera.id.desc()).first()},
             {"component": "gps_position", "data":
-             db.query(models.GPSPosition).filter(
+             db.query(models.GPSPosition).options(joinedload(models.GPSPosition.latitude_unit)).options(joinedload(models.GPSPosition.longitude_unit)).filter(
                  models.GPSPosition.aquapod_id == aquapod.id).order_by(
                  models.GPSPosition.id.desc()).first()},
             {"component": "trash_container", "data":
-             db.query(models.TrashContainer).filter(
+             db.query(models.TrashContainer).options(joinedload(models.TrashContainer.container_capacity_unit)).options(joinedload(models.TrashContainer.container_filled_unit)).filter(
                  models.TrashContainer.aquapod_id == aquapod.id).order_by(
                  models.TrashContainer.id.desc()).first()},
             {"component": "pump", "data":
-             db.query(models.Pump).filter(
+             db.query(models.Pump).options(joinedload(models.Pump.speed_unit)).filter(
                  models.Pump.aquapod_id == aquapod.id).order_by(
                  models.Pump.id.desc()).first()},
             {"component": "battery", "data":
-             db.query(models.Battery).filter(
+             db.query(models.Battery).options(joinedload(models.Battery.charge_current_unit)).options(joinedload(models.Battery.discharge_current_unit)).options(joinedload(models.Battery.voltage_unit)).options(joinedload(models.Battery.capacity_unit)).filter(
                  models.Battery.aquapod_id == aquapod.id).order_by(
                  models.Battery.id.desc()).first()},
             {"component": "solar_panel", "data":
-             db.query(models.SolarPanel).filter(
+             db.query(models.SolarPanel).options(joinedload(models.SolarPanel.insolation_unit)).options(joinedload(models.SolarPanel.utilization_unit)).options(joinedload(models.SolarPanel.voltage_unit)).filter(
                  models.SolarPanel.aquapod_id == aquapod.id).order_by(
                  models.SolarPanel.id.desc()).first()},
             {"component": "environment", "data":
-             db.query(models.Environment).filter(
+             db.query(models.Environment).options(joinedload(models.Environment.wind_direction_unit)).options(joinedload(models.Environment.wind_power_unit)).options(joinedload(models.Environment.air_temperature_unit)).options(joinedload(models.Environment.sea_depth_unit)).options(joinedload(models.Environment.sea_temperature_unit)).options(joinedload(models.Environment.sea_ph_unit)).filter(
                  models.Environment.aquapod_id == aquapod.id).order_by(
                  models.Environment.id.desc()).first()}
         ]
