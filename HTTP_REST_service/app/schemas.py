@@ -8,6 +8,7 @@ from datetime import datetime
 
 class AquaPodBase(BaseModel):
     name: str
+    total_garbage_collected: float = 0.0
 
 
 class AquaPodCreate(AquaPodBase):
@@ -21,12 +22,30 @@ class Aquapod(AquaPodBase):
         orm_mode = True
 
 
+class AquaPodPublic(AquaPodBase):
+    environment: list
+
+
 class AquaPodWithLatestData(AquaPodBase):
     id: int
     latest_data: list
 
     class Config:
         orm_mode = True
+
+
+# UNIT
+
+
+class Unit(BaseModel):
+    id: int
+    name: str
+    symbol: str
+    description: str
+
+    class Config:
+        orm_mode = True
+
 
 # VIDEO CAMERA
 
@@ -62,10 +81,14 @@ class GPSPositionCreate(BaseModel):
     operational_timestamp: Optional[datetime] = None
 
 
-class GPSPosition(GPSPositionCreate):
+class GPSPosition(BaseModel):
     id: int
-    latitude_unit_id: int
-    longitude_unit_id: int
+    aquapod_id: Optional[int] = None
+    latitude: float = 0.0
+    longitude: float = 0.0
+    operational_timestamp: Optional[datetime] = None
+    latitude_unit: Optional[Unit] = None
+    longitude_unit: Optional[Unit] = None
 
     class Config:
         orm_mode = True
@@ -75,13 +98,17 @@ class GPSPosition(GPSPositionCreate):
 
 class TrashContainerCreate(BaseModel):
     aquapod_id: Optional[int] = None
-    garbage_filled: float = 0.0
-    garbage_collected_total: float = 0.0
+    container_filled: float = 0.0
+    container_capacity: float = 0.0
+    alarm_status: Optional[bool] = False
+    emptying: Optional[bool] = False
     operational_timestamp: Optional[datetime] = None
 
 
 class TrashContainer(TrashContainerCreate):
     id: int
+    container_filled_unit: Optional[Unit] = None
+    container_capacity_unit: Optional[Unit] = None
 
     class Config:
         orm_mode = True
@@ -100,7 +127,7 @@ class PumpCreate(BaseModel):
 
 class Pump(PumpCreate):
     id: int
-    speed_unit_id: int
+    speed_unit: Optional[Unit] = None
 
     class Config:
         orm_mode = True
@@ -126,10 +153,10 @@ class BatteryCreate(BaseModel):
 
 class Battery(BatteryCreate):
     id: int
-    charge_current_unit_id: int
-    discharge_current_unit_id: int
-    voltage_unit_id: int
-    capacity_unit_id: int
+    charge_current_unit: Optional[Unit] = None
+    discharge_current_unit: Optional[Unit] = None
+    voltage_unit: Optional[Unit] = None
+    capacity_unit: Optional[Unit] = None
 
     class Config:
         orm_mode = True
@@ -148,9 +175,9 @@ class SolarPanelCreate(BaseModel):
 
 class SolarPanel(SolarPanelCreate):
     id: int
-    insolation_unit_id: int
-    voltage_unit_id: int
-    utilization_unit_id: int
+    insolation_unit: Optional[Unit] = None
+    voltage_unit: Optional[Unit] = None
+    utilization_unit: Optional[Unit] = None
 
     class Config:
         orm_mode = True
@@ -171,12 +198,12 @@ class EnvironmentCreate(BaseModel):
 
 class Environment(EnvironmentCreate):
     id: int
-    sea_depth_unit_id: int
-    sea_temperature_unit_id: int
-    sea_ph_unit_id: int
-    wind_direction_unit_id: int
-    wind_power_unit_id: int
-    air_temperature_unit_id: int
+    sea_depth_unit: Optional[Unit] = None
+    sea_temperature_unit: Optional[Unit] = None
+    sea_ph_unit: Optional[Unit] = None
+    wind_direction_unit: Optional[Unit] = None
+    wind_power_unit: Optional[Unit] = None
+    air_temperature_unit: Optional[Unit] = None
 
     class Config:
         orm_mode = True

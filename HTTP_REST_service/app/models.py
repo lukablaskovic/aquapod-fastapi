@@ -11,6 +11,7 @@ class AquaPod(Base):
     __tablename__ = "aquapod"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False, unique=True)
+    total_garbage_collected = Column(Float, nullable=False, default=0.0)
 
     video_camera = relationship(
         "VideoCamera", back_populates="aquapod")
@@ -80,8 +81,24 @@ class TrashContainer(Base):
     __tablename__ = "trash_container"
     id = Column(Integer, primary_key=True, index=True)
     aquapod_id = Column(Integer, ForeignKey("aquapod.id"))
-    garbage_filled = Column(Float, nullable=False, default=0.0)
+    container_filled = Column(Float, nullable=False, default=0.0)
+    container_capacity = Column(Float, nullable=False, default=0.0)
+
+    container_filled_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=14)  # gram g
+
+    container_capacity_unit_id = Column(
+        Integer, ForeignKey("unit.id"), default=14)  # gram g
+
+    container_filled_unit = relationship(
+        "Unit", foreign_keys=[container_filled_unit_id])
+
+    container_capacity_unit = relationship(
+        "Unit", foreign_keys=[container_capacity_unit_id])
+
+    alarm_status = Column(Boolean, nullable=False, default=False)
     garbage_collected_total = Column(Float, nullable=False, default=0.0)
+    emptying = Column(Boolean, nullable=False, default=False)
     aquapod = relationship(
         "AquaPod", back_populates="trash_container", uselist=False)
 
