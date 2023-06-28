@@ -24,6 +24,7 @@ class Aquapod(AquaPodBase):
 
 class AquaPodPublic(AquaPodBase):
     environment: list
+    gps_position: list
 
 
 class AquaPodWithLatestData(AquaPodBase):

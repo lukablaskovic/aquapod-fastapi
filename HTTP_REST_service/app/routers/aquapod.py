@@ -63,11 +63,15 @@ async def get_all_aquapods(name: Optional[str] = None, db: Session = Depends(get
             models.Environment.aquapod_id == ap.id).order_by(
             models.Environment.id.desc()).first()
 
+        gps_position = db.query(models.GPSPosition).options(joinedload(models.GPSPosition.latitude_unit)).options(joinedload(models.GPSPosition.longitude_unit)).filter(models.GPSPosition.aquapod_id == ap.id).order_by(
+            models.GPSPosition.id.desc()).first()
+
         # Convert to dict if it's a SQLAlchemy model instance
         environment = environment.__dict__ if environment else {}
-
-        aquapod_public_list.append(schemas.AquaPodPublic(
-            environment=[environment], **ap.__dict__))
+        gps_position = gps_position.__dict__ if gps_position else {}
+        aquapod_dict = {
+            **ap.__dict__, "environment": [environment], "gps_position": [gps_position]}
+        aquapod_public_list.append(schemas.AquaPodPublic(**aquapod_dict))
 
     return aquapod_public_list
 
