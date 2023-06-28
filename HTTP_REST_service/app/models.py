@@ -3,7 +3,7 @@ from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import text
 from .db import Base
-
+from .utils import unit_map
 # Schalchemy model - defines what our database looks like, as well as ORM relationships
 
 
@@ -64,9 +64,9 @@ class GPSPosition(Base):
     longitude = Column(Float, nullable=False, default=0.0)
 
     latitude_unit_id = Column(Integer, ForeignKey(
-        "unit.id"), default=11)  # degree °
+        "unit.id"), default=unit_map["degree"])
     longitude_unit_id = Column(
-        Integer, ForeignKey("unit.id"), default=11)  # degree °
+        Integer, ForeignKey("unit.id"), default=unit_map["degree"])
 
     latitude_unit = relationship(
         "Unit", foreign_keys=[latitude_unit_id])
@@ -85,10 +85,10 @@ class TrashContainer(Base):
     container_capacity = Column(Float, nullable=False, default=0.0)
 
     container_filled_unit_id = Column(
-        Integer, ForeignKey("unit.id"), default=14)  # gram g
+        Integer, ForeignKey("unit.id"), default=unit_map["gram"])  # gram g
 
     container_capacity_unit_id = Column(
-        Integer, ForeignKey("unit.id"), default=14)  # gram g
+        Integer, ForeignKey("unit.id"), default=unit_map["gram"])  # gram g
 
     container_filled_unit = relationship(
         "Unit", foreign_keys=[container_filled_unit_id])
@@ -119,7 +119,8 @@ class Pump(Base):
     working_time = Column(Float, nullable=False, default=0.0)
     alarm_status = Column(String)
 
-    speed_unit_id = Column(Integer, ForeignKey("unit.id"), default=1)  # RPM
+    speed_unit_id = Column(Integer, ForeignKey(
+        "unit.id"), default=unit_map["revolutions_per_minute"])
     speed_unit = relationship(
         "Unit", foreign_keys=[speed_unit_id])
 
@@ -141,11 +142,13 @@ class Battery(Base):
     cycle_count = Column(Integer, nullable=False, default=0)
 
     charge_current_unit_id = Column(
-        Integer, ForeignKey("unit.id"), default=2)  # A
+        Integer, ForeignKey("unit.id"), default=unit_map["ampere"])
     discharge_current_unit_id = Column(
-        Integer, ForeignKey("unit.id"), default=2)  # A
-    voltage_unit_id = Column(Integer, ForeignKey("unit.id"), default=3)  # V
-    capacity_unit_id = Column(Integer, ForeignKey("unit.id"), default=4)  # Ah
+        Integer, ForeignKey("unit.id"), default=unit_map["ampere"])
+    voltage_unit_id = Column(Integer, ForeignKey(
+        "unit.id"), default=unit_map["volt"])
+    capacity_unit_id = Column(Integer, ForeignKey(
+        "unit.id"), default=unit_map["ampere-hour"])
 
     charge_current_unit = relationship(
         "Unit", foreign_keys=[charge_current_unit_id])
@@ -173,10 +176,11 @@ class SolarPanel(Base):
     working_time = Column(Float, nullable=False, default=0.0)
 
     insolation_unit_id = Column(
-        Integer, ForeignKey("unit.id"), default=6)  # kWh/m2
-    voltage_unit_id = Column(Integer, ForeignKey("unit.id"), default=3)  # V
+        Integer, ForeignKey("unit.id"), default=unit_map["insolation"])
+    voltage_unit_id = Column(Integer, ForeignKey(
+        "unit.id"), default=unit_map["volt"])
     utilization_unit_id = Column(
-        Integer, ForeignKey("unit.id"), default=7)  # W
+        Integer, ForeignKey("unit.id"), default=unit_map["watt"])
 
     insolation_unit = relationship(
         "Unit", foreign_keys=[insolation_unit_id])
@@ -205,16 +209,18 @@ class Environment(Base):
     wind_power = Column(Float, nullable=False, default=0.0)
     air_temperature = Column(Float, nullable=False, default=0.0)
 
-    sea_depth_unit_id = Column(Integer, ForeignKey("unit.id"), default=8)  # m
+    sea_depth_unit_id = Column(Integer, ForeignKey(
+        "unit.id"), default=unit_map["meter"])
     sea_temperature_unit_id = Column(
-        Integer, ForeignKey("unit.id"), default=9)  # °C
-    sea_ph_unit_id = Column(Integer, ForeignKey("unit.id"), default=10)  # pH
+        Integer, ForeignKey("unit.id"), default=unit_map["degree_celsius"])
+    sea_ph_unit_id = Column(Integer, ForeignKey(
+        "unit.id"), default=["pH"])
     wind_direction_unit_id = Column(
-        Integer, ForeignKey("unit.id"), default=11)  # degree °
+        Integer, ForeignKey("unit.id"), default=unit_map["degree"])
     wind_power_unit_id = Column(
-        Integer, ForeignKey("unit.id"), default=12)  # km/h
+        Integer, ForeignKey("unit.id"), default=unit_map["kilometer_per_hour"])
     air_temperature_unit_id = Column(
-        Integer, ForeignKey("unit.id"), default=9)  # °C
+        Integer, ForeignKey("unit.id"), default=unit_map["degree_celsius"])
 
     sea_depth_unit = relationship(
         "Unit", foreign_keys=[sea_depth_unit_id])
