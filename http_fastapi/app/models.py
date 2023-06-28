@@ -214,7 +214,7 @@ class Environment(Base):
     sea_temperature_unit_id = Column(
         Integer, ForeignKey("unit.id"), default=unit_map["degree_celsius"])
     sea_ph_unit_id = Column(Integer, ForeignKey(
-        "unit.id"), default=["pH"])
+        "unit.id"), default=unit_map["pH"])
     wind_direction_unit_id = Column(
         Integer, ForeignKey("unit.id"), default=unit_map["degree"])
     wind_power_unit_id = Column(

@@ -26,6 +26,9 @@ class AquaPodPublic(AquaPodBase):
     environment: list
     gps_position: list
 
+    class Config:
+        orm_mode = True
+
 
 class AquaPodWithLatestData(AquaPodBase):
     id: int

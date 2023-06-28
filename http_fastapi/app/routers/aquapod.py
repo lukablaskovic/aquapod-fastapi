@@ -67,8 +67,7 @@ async def get_all_aquapods(name: Optional[str] = None, db: Session = Depends(get
             models.GPSPosition.id.desc()).first()
 
         # Convert to dict if it's a SQLAlchemy model instance
-        environment = environment.__dict__ if environment else {}
-        gps_position = gps_position.__dict__ if gps_position else {}
+
         aquapod_dict = {
             **ap.__dict__, "environment": [environment], "gps_position": [gps_position]}
         aquapod_public_list.append(schemas.AquaPodPublic(**aquapod_dict))
