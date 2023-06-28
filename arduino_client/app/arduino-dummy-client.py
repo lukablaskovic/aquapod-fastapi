@@ -5,7 +5,7 @@ import random
 import logging
 
 # Broker connection settings
-broker_address = "localhost"
+broker_address = "mqtt_broker"  # localhost for local broker
 broker_port = 1883  # Default port for MQTT protocol is 1883
 timeout = 60  # [seconds]
 

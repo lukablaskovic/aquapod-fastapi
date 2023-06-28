@@ -14,7 +14,7 @@ from ..db import get_db
 
 from datetime import datetime
 
-FASTMQTT_SERVICE_URL = "http://localhost:8001"
+FASTMQTT_SERVICE_URL = "http://mqtt_fastmqtt:80"
 
 router = APIRouter(
     prefix="/aquapods",

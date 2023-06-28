@@ -1,0 +1,57 @@
+version: "3.8"
+services:
+  mqtt_broker:
+    image: eclipse-mosquitto:latest
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+      - "1883:1883"
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: lozinka123
+      POSTGRES_DB: aquapod
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  http_fastapi:
+    build:
+      context: ./http_fastapi
+      dockerfile: Dockerfile
+    env_file:
+      - ./http_fastapi/.env
+    volumes:
+      - ./http_fastapi/app:/code/app
+    ports:
+      - "8000:80"
+    depends_on:
+      - db
+      - mqtt_broker
+
+  mqtt_fastmqtt:
+    build:
+      context: ./mqtt_fastmqtt
+      dockerfile: Dockerfile
+    volumes:
+      - ./mqtt_fastmqtt/app:/code/app
+    ports:
+      - "8001:80"
+    environment:
+      - WAIT_HOSTS=mqtt_broker:1883
+      - WAIT_TIMEOUT=300 # Maximum wait time in seconds
+    depends_on:
+      - mqtt_broker
+
+  arduino_client:
+    build:
+      context: ./arduino_client
+      dockerfile: Dockerfile
+    volumes:
+      - ./arduino_client/app:/code/app
+    ports:
+      - "8002:80"
+    depends_on:
+      - mqtt_broker

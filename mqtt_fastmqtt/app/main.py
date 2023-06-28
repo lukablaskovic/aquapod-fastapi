@@ -6,7 +6,14 @@ import aiohttp
 
 app = FastAPI()
 
-mqtt_config = MQTTConfig(CONFIG_PARAMS)
+mqtt_config = MQTTConfig(
+    host="mqtt_broker",  # Define your MQTT broker here
+    port=1883,
+    keepalive=60,  # seconds
+    username=None,
+    password=None
+)
+
 
 fast_mqtt = FastMQTT(
     config=mqtt_config
