@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white" />
 </div>
 
-_AquaPod_ is an innovative project designed to address marine pollution by autonomously collecting waste from the sea. This repository hosts the code for the REST API built using _FastAPI_, used to control the AquaPod, as well as fetch sensor and other relevant data.
+_AquaPod_ 🛥️ is an innovative project designed to address marine pollution by autonomously collecting waste from the sea. This repository hosts the code for the REST API built using _FastAPI_, used to control the AquaPod, as well as fetch sensor and other relevant data.
 
 This repository comprises three distinct services:
 
