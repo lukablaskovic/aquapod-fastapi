@@ -14,23 +14,18 @@ from ..db import get_db
 
 from datetime import datetime
 
-FASTMQTT_SERVICE_URL = "http://mqtt_fastmqtt:80"
+FASTMQTT_SERVICE_URL = "http://mqtt_fastmqtt:81"  # Localhost: "http://localhost:8001" # DOCKER: "http://mqtt_fastmqtt:81"
 
-router = APIRouter(
-    prefix="/aquapods",
-    tags=["AquaPod"]
-)
+router = APIRouter(prefix="/aquapods", tags=["AquaPod"])
 
 
 def search_aquapod(db: Session, name: str):
-    aquapod = db.query(models.AquaPod).filter(
-        models.AquaPod.name == name).first()
+    aquapod = db.query(models.AquaPod).filter(models.AquaPod.name == name).first()
 
     if aquapod is None:
-        raise HTTPException(
-            status_code=404, detail=f"Aquapod '{name}' not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Aquapod '{name}' not found")
     return aquapod
+
 
 # Return all aquapods
 
@@ -44,32 +39,52 @@ async def call_publish_message_service(topic: str, payload: dict):
     return response
 
 
-@router.get("/", response_model=List[schemas.AquaPodPublic], status_code=status.HTTP_200_OK)
+@router.get(
+    "/", response_model=List[schemas.AquaPodPublic], status_code=status.HTTP_200_OK
+)
 async def get_all_aquapods(name: Optional[str] = None, db: Session = Depends(get_db)):
     try:
         if name:
-            aquapods = db.query(models.AquaPod).filter(
-                models.AquaPod.name == name).all()
+            aquapods = (
+                db.query(models.AquaPod).filter(models.AquaPod.name == name).all()
+            )
         else:
             aquapods = db.query(models.AquaPod).all()
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"An error occurred. {e}")
+        raise HTTPException(status_code=500, detail=f"An error occurred. {e}")
 
     aquapod_public_list = []
     for ap in aquapods:
         # Query environment for this aquapod
-        environment = db.query(models.Environment).options(joinedload(models.Environment.wind_direction_unit)).options(joinedload(models.Environment.wind_power_unit)).options(joinedload(models.Environment.air_temperature_unit)).options(joinedload(models.Environment.sea_depth_unit)).options(joinedload(models.Environment.sea_temperature_unit)).options(joinedload(models.Environment.sea_ph_unit)).filter(
-            models.Environment.aquapod_id == ap.id).order_by(
-            models.Environment.id.desc()).first()
+        environment = (
+            db.query(models.Environment)
+            .options(joinedload(models.Environment.wind_direction_unit))
+            .options(joinedload(models.Environment.wind_power_unit))
+            .options(joinedload(models.Environment.air_temperature_unit))
+            .options(joinedload(models.Environment.sea_depth_unit))
+            .options(joinedload(models.Environment.sea_temperature_unit))
+            .options(joinedload(models.Environment.sea_ph_unit))
+            .filter(models.Environment.aquapod_id == ap.id)
+            .order_by(models.Environment.id.desc())
+            .first()
+        )
 
-        gps_position = db.query(models.GPSPosition).options(joinedload(models.GPSPosition.latitude_unit)).options(joinedload(models.GPSPosition.longitude_unit)).filter(models.GPSPosition.aquapod_id == ap.id).order_by(
-            models.GPSPosition.id.desc()).first()
+        gps_position = (
+            db.query(models.GPSPosition)
+            .options(joinedload(models.GPSPosition.latitude_unit))
+            .options(joinedload(models.GPSPosition.longitude_unit))
+            .filter(models.GPSPosition.aquapod_id == ap.id)
+            .order_by(models.GPSPosition.id.desc())
+            .first()
+        )
 
         # Convert to dict if it's a SQLAlchemy model instance
 
         aquapod_dict = {
-            **ap.__dict__, "environment": [environment], "gps_position": [gps_position]}
+            **ap.__dict__,
+            "environment": [environment],
+            "gps_position": [gps_position],
+        }
         aquapod_public_list.append(schemas.AquaPodPublic(**aquapod_dict))
 
     return aquapod_public_list
@@ -77,44 +92,91 @@ async def get_all_aquapods(name: Optional[str] = None, db: Session = Depends(get
 
 # Return specific aquapod by Name
 
-@router.get("/{name}", response_model=Optional[schemas.AquaPodWithLatestData], status_code=status.HTTP_200_OK)
-def get_aquapod_by_name(name: str, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+
+@router.get(
+    "/{name}",
+    response_model=Optional[schemas.AquaPodWithLatestData],
+    status_code=status.HTTP_200_OK,
+)
+def get_aquapod_by_name(
+    name: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user),
+):
     aquapod = search_aquapod(db, name)
     try:
         latest_data = [
-            {"component": "video_camera", "data":
-             db.query(models.VideoCamera).filter(
-                 models.VideoCamera.aquapod_id == aquapod.id).order_by(
-                 models.VideoCamera.id.desc()).first()},
-            {"component": "gps_position", "data":
-             db.query(models.GPSPosition).options(joinedload(models.GPSPosition.latitude_unit)).options(joinedload(models.GPSPosition.longitude_unit)).filter(
-                 models.GPSPosition.aquapod_id == aquapod.id).order_by(
-                 models.GPSPosition.id.desc()).first()},
-            {"component": "trash_container", "data":
-             db.query(models.TrashContainer).options(joinedload(models.TrashContainer.container_capacity_unit)).options(joinedload(models.TrashContainer.container_filled_unit)).filter(
-                 models.TrashContainer.aquapod_id == aquapod.id).order_by(
-                 models.TrashContainer.id.desc()).first()},
-            {"component": "pump", "data":
-             db.query(models.Pump).options(joinedload(models.Pump.speed_unit)).filter(
-                 models.Pump.aquapod_id == aquapod.id).order_by(
-                 models.Pump.id.desc()).first()},
-            {"component": "battery", "data":
-             db.query(models.Battery).options(joinedload(models.Battery.charge_current_unit)).options(joinedload(models.Battery.discharge_current_unit)).options(joinedload(models.Battery.voltage_unit)).options(joinedload(models.Battery.capacity_unit)).filter(
-                 models.Battery.aquapod_id == aquapod.id).order_by(
-                 models.Battery.id.desc()).first()},
-            {"component": "solar_panel", "data":
-             db.query(models.SolarPanel).options(joinedload(models.SolarPanel.insolation_unit)).options(joinedload(models.SolarPanel.utilization_unit)).options(joinedload(models.SolarPanel.voltage_unit)).filter(
-                 models.SolarPanel.aquapod_id == aquapod.id).order_by(
-                 models.SolarPanel.id.desc()).first()},
-            {"component": "environment", "data":
-             db.query(models.Environment).options(joinedload(models.Environment.wind_direction_unit)).options(joinedload(models.Environment.wind_power_unit)).options(joinedload(models.Environment.air_temperature_unit)).options(joinedload(models.Environment.sea_depth_unit)).options(joinedload(models.Environment.sea_temperature_unit)).options(joinedload(models.Environment.sea_ph_unit)).filter(
-                 models.Environment.aquapod_id == aquapod.id).order_by(
-                 models.Environment.id.desc()).first()}
+            {
+                "component": "video_camera",
+                "data": db.query(models.VideoCamera)
+                .filter(models.VideoCamera.aquapod_id == aquapod.id)
+                .order_by(models.VideoCamera.id.desc())
+                .first(),
+            },
+            {
+                "component": "gps_position",
+                "data": db.query(models.GPSPosition)
+                .options(joinedload(models.GPSPosition.latitude_unit))
+                .options(joinedload(models.GPSPosition.longitude_unit))
+                .filter(models.GPSPosition.aquapod_id == aquapod.id)
+                .order_by(models.GPSPosition.id.desc())
+                .first(),
+            },
+            {
+                "component": "trash_container",
+                "data": db.query(models.TrashContainer)
+                .options(joinedload(models.TrashContainer.container_capacity_unit))
+                .options(joinedload(models.TrashContainer.container_filled_unit))
+                .filter(models.TrashContainer.aquapod_id == aquapod.id)
+                .order_by(models.TrashContainer.id.desc())
+                .first(),
+            },
+            {
+                "component": "pump",
+                "data": db.query(models.Pump)
+                .options(joinedload(models.Pump.speed_unit))
+                .filter(models.Pump.aquapod_id == aquapod.id)
+                .order_by(models.Pump.id.desc())
+                .first(),
+            },
+            {
+                "component": "battery",
+                "data": db.query(models.Battery)
+                .options(joinedload(models.Battery.charge_current_unit))
+                .options(joinedload(models.Battery.discharge_current_unit))
+                .options(joinedload(models.Battery.voltage_unit))
+                .options(joinedload(models.Battery.capacity_unit))
+                .filter(models.Battery.aquapod_id == aquapod.id)
+                .order_by(models.Battery.id.desc())
+                .first(),
+            },
+            {
+                "component": "solar_panel",
+                "data": db.query(models.SolarPanel)
+                .options(joinedload(models.SolarPanel.insolation_unit))
+                .options(joinedload(models.SolarPanel.utilization_unit))
+                .options(joinedload(models.SolarPanel.voltage_unit))
+                .filter(models.SolarPanel.aquapod_id == aquapod.id)
+                .order_by(models.SolarPanel.id.desc())
+                .first(),
+            },
+            {
+                "component": "environment",
+                "data": db.query(models.Environment)
+                .options(joinedload(models.Environment.wind_direction_unit))
+                .options(joinedload(models.Environment.wind_power_unit))
+                .options(joinedload(models.Environment.air_temperature_unit))
+                .options(joinedload(models.Environment.sea_depth_unit))
+                .options(joinedload(models.Environment.sea_temperature_unit))
+                .options(joinedload(models.Environment.sea_ph_unit))
+                .filter(models.Environment.aquapod_id == aquapod.id)
+                .order_by(models.Environment.id.desc())
+                .first(),
+            },
         ]
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"An error occurred. {e}")
+        raise HTTPException(status_code=500, detail=f"An error occurred. {e}")
     aquapod.latest_data = latest_data
     return aquapod
 
@@ -123,12 +185,18 @@ def get_aquapod_by_name(name: str, db: Session = Depends(get_db), current_user: 
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_aquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
-    aquapod_in_db = db.query(models.AquaPod).filter(
-        models.AquaPod.name == aquapod.name).first()
+def create_aquapod(
+    aquapod: schemas.AquaPodCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user),
+):
+    aquapod_in_db = (
+        db.query(models.AquaPod).filter(models.AquaPod.name == aquapod.name).first()
+    )
     if aquapod_in_db:
         raise HTTPException(
-            status_code=400, detail="Aquapod already exists with this name.")
+            status_code=400, detail="Aquapod already exists with this name."
+        )
     try:
         new_aquapod = models.AquaPod(**aquapod.dict())
         db.add(new_aquapod)
@@ -138,45 +206,50 @@ def create_aquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db)
 
         # VideoCamera(aquapod_id, status=false, pan=0.0, zoom=0.0)
         video_camera_data = schemas.VideoCameraCreate(
-            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now())
+            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now()
+        )
         new_video_camera = models.VideoCamera(**video_camera_data.dict())
         db.add(new_video_camera)
 
         # GPSPosition(aquapod_id, latitude=0.0, longitude=0.0)
         gps_position_data = schemas.GPSPositionCreate(
-            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now())
+            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now()
+        )
         new_gps_position = models.GPSPosition(**gps_position_data.dict())
         db.add(new_gps_position)
 
         # TrashContainer(aquapod_id, container_filled(g) = 0.0, container_capacity(g) = 0.0)
         trash_container_data = schemas.TrashContainerCreate(
-            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now())
-        new_trash_container = models.TrashContainer(
-            **trash_container_data.dict())
+            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now()
+        )
+        new_trash_container = models.TrashContainer(**trash_container_data.dict())
         db.add(new_trash_container)
 
         # Pump(aquapod_id, speed(RPM)=0.0, status = false, working_time=0.00(min), alarm_status=null)
         pump_data = schemas.PumpCreate(
-            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now())
+            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now()
+        )
         new_pump = models.Pump(**pump_data.dict())
         db.add(new_pump)
 
         # Battery(aquapod_id, charge_current(A) = 0.0, discharge_current(A)=0.0, voltage(V)=0.0, capacity(Ah)=0.0, cycle_count=0)
         battery_data = schemas.BatteryCreate(
-            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now())
+            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now()
+        )
         new_battery = models.Battery(**battery_data.dict())
         db.add(new_battery)
 
         # Solar_Panel(aquapod_id, insolation(kWh/m2)=0.0, voltage(V)=0.0, utilization(W)=0.0, working_time(min)=0.00)
         solar_panel_data = schemas.SolarPanelCreate(
-            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now())
-        new_solar_panel = models.SolarPanel(
-            **solar_panel_data.dict())
+            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now()
+        )
+        new_solar_panel = models.SolarPanel(**solar_panel_data.dict())
         db.add(new_solar_panel)
 
         # Environment(aquapod_id, sea_depth(m)=0.0, sea_temperature(°C)=0.0, sea_ph(pH)=0.0, wind_direction(°)=0.0, wind_power(km/h)=0.00, air_temperature()=0.00)
         environment_data = schemas.EnvironmentCreate(
-            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now())
+            aquapod_id=new_aquapod.id, operational_timestamp=datetime.now()
+        )
         new_environment = models.Environment(**environment_data.dict())
         db.add(new_environment)
 
@@ -185,33 +258,50 @@ def create_aquapod(aquapod: schemas.AquaPodCreate, db: Session = Depends(get_db)
 
     except Exception as e:
         db.rollback()
-        raise HTTPException(
-            status_code=500, detail=f"An error occurred. {e}")
+        raise HTTPException(status_code=500, detail=f"An error occurred. {e}")
     return new_aquapod
+
 
 # VIDEO CAMERA
 
 
-@router.get("/{name}/video-camera", response_model=List[schemas.VideoCamera], status_code=status.HTTP_200_OK)
-def get_video_camera_instances(name: str, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+@router.get(
+    "/{name}/video-camera",
+    response_model=List[schemas.VideoCamera],
+    status_code=status.HTTP_200_OK,
+)
+def get_video_camera_instances(
+    name: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user),
+):
     aquapod = search_aquapod(db, name)
-    video_cameras = db.query(models.VideoCamera).filter(
-        models.VideoCamera.aquapod_id == aquapod.id).all()
+    video_cameras = (
+        db.query(models.VideoCamera)
+        .filter(models.VideoCamera.aquapod_id == aquapod.id)
+        .all()
+    )
     if video_cameras is None or len(video_cameras) == 0:
         raise HTTPException(
-            status_code=404, detail=f"No video cameras for Aquapod '{name}' found!")
+            status_code=404, detail=f"No video cameras for Aquapod '{name}' found!"
+        )
     return video_cameras
 
 
-@router.post("/{name}/video-camera", response_model=schemas.VideoCamera, status_code=status.HTTP_201_CREATED)
-def add_video_camera_instance(video_camera: schemas.VideoCameraCreate, name: str, db: Session = Depends(get_db)):
+@router.post(
+    "/{name}/video-camera",
+    response_model=schemas.VideoCamera,
+    status_code=status.HTTP_201_CREATED,
+)
+def add_video_camera_instance(
+    video_camera: schemas.VideoCameraCreate, name: str, db: Session = Depends(get_db)
+):
     aquapod = search_aquapod(db, name)
 
     video_camera.aquapod_id = aquapod.id
     video_camera.operational_timestamp = datetime.now()
 
-    new_video_camera = models.VideoCamera(
-        **video_camera.dict())
+    new_video_camera = models.VideoCamera(**video_camera.dict())
 
     db.add(new_video_camera)
     db.commit()
@@ -219,75 +309,119 @@ def add_video_camera_instance(video_camera: schemas.VideoCameraCreate, name: str
     return new_video_camera
 
 
-@router.patch("/{name}/video-camera/{update_att}", response_model=schemas.VideoCamera, status_code=status.HTTP_200_OK)
-async def update_video_camera(update: schemas.VideoCameraUpdate, name: str, update_att: str, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+@router.patch(
+    "/{name}/video-camera/{update_att}",
+    response_model=schemas.VideoCamera,
+    status_code=status.HTTP_200_OK,
+)
+async def update_video_camera(
+    update: schemas.VideoCameraUpdate,
+    name: str,
+    update_att: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user),
+):
     aquapod = search_aquapod(db, name)
 
     # Get the video camera
-    latest_video_camera = db.query(models.VideoCamera).filter(models.VideoCamera.aquapod_id == aquapod.id).order_by(
-        models.VideoCamera.operational_timestamp.desc()).first()
+    latest_video_camera = (
+        db.query(models.VideoCamera)
+        .filter(models.VideoCamera.aquapod_id == aquapod.id)
+        .order_by(models.VideoCamera.operational_timestamp.desc())
+        .first()
+    )
 
     if not latest_video_camera:
         raise HTTPException(
-            status_code=404, detail="No Video Camera found for this aquapod")
+            status_code=404, detail="No Video Camera found for this aquapod"
+        )
 
     # Check if the update attribute is valid
     if update_att not in ["pan", "zoom", "status"]:
         raise HTTPException(
-            status_code=400, detail="Invalid attribute to update. Allowed attributes are: 'pan', 'zoom', 'status'.")
+            status_code=400,
+            detail="Invalid attribute to update. Allowed attributes are: 'pan', 'zoom', 'status'.",
+        )
 
     # Update the pump attribute and publish the message
     update_value = getattr(update, update_att)
     if update_value is not None:
         setattr(latest_video_camera, update_att, update_value)
         await call_publish_message_service(
-            f"/aquapods/{name}/video-camera/{update_att}", update_value)
+            f"/aquapods/{name}/video-camera/{update_att}", update_value
+        )
 
     db.commit()
     db.refresh(latest_video_camera)
     return latest_video_camera
 
+
 # GPS POSITION
 
 
-@router.get("/{name}/gps-position", response_model=List[schemas.GPSPosition], status_code=status.HTTP_200_OK)
+@router.get(
+    "/{name}/gps-position",
+    response_model=List[schemas.GPSPosition],
+    status_code=status.HTTP_200_OK,
+)
 def get_gps_position_instances(name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
-    gps_positions = db.query(models.GPSPosition).filter(
-        models.GPSPosition.aquapod_id == aquapod.id).all()
+    gps_positions = (
+        db.query(models.GPSPosition)
+        .filter(models.GPSPosition.aquapod_id == aquapod.id)
+        .all()
+    )
     if gps_positions is None or len(gps_positions) == 0:
         raise HTTPException(
-            status_code=404, detail=f"No GPS positions for Aquapod '{name}' found!")
+            status_code=404, detail=f"No GPS positions for Aquapod '{name}' found!"
+        )
     return gps_positions
 
 
-@router.post("/{name}/gps-position", response_model=schemas.GPSPosition, status_code=status.HTTP_201_CREATED)
-async def add_gps_position_instance(gps_position: schemas.GPSPositionCreate, name: str,  db: Session = Depends(get_db)):
-
+@router.post(
+    "/{name}/gps-position",
+    response_model=schemas.GPSPosition,
+    status_code=status.HTTP_201_CREATED,
+)
+async def add_gps_position_instance(
+    gps_position: schemas.GPSPositionCreate, name: str, db: Session = Depends(get_db)
+):
     aquapod = search_aquapod(db, name)
 
     gps_position.aquapod_id = aquapod.id
     gps_position.operational_timestamp = datetime.now()
 
-    new_gps_position = models.GPSPosition(
-        **gps_position.dict())
+    new_gps_position = models.GPSPosition(**gps_position.dict())
 
     db.add(new_gps_position)
     db.commit()
     db.refresh(new_gps_position)
     return new_gps_position
 
+
 # TRASH CONTAINER
 
 
-@router.get("/{name}/trash-container", response_model=List[schemas.TrashContainer], status_code=status.HTTP_200_OK)
-def get_trash_container_instances(name: str, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+@router.get(
+    "/{name}/trash-container",
+    response_model=List[schemas.TrashContainer],
+    status_code=status.HTTP_200_OK,
+)
+def get_trash_container_instances(
+    name: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user),
+):
     aquapod = search_aquapod(db, name)
-    trash_containers = db.query(models.TrashContainer).filter(
-        models.TrashContainer.aquapod_id == aquapod.id).all()
+    trash_containers = (
+        db.query(models.TrashContainer)
+        .filter(models.TrashContainer.aquapod_id == aquapod.id)
+        .all()
+    )
     if trash_containers is None or len(trash_containers) == 0:
         raise HTTPException(
-            status_code=404, detail=f"No trash containers for Aquapod '{name}' found!")
+            status_code=404, detail=f"No trash containers for Aquapod '{name}' found!"
+        )
     return trash_containers
 
 
@@ -299,30 +433,41 @@ def check_container_fullness(container: schemas.TrashContainer):
         container.alarm_status = False
     return container
 
+
 # Emptying must be set tu true before emptying container, not while emptying or after.
 
 
-def check_container_emptying(aquapod:  schemas.Aquapod, container: schemas.TrashContainer):
+def check_container_emptying(
+    aquapod: schemas.Aquapod, container: schemas.TrashContainer
+):
     if container.emptying:
         aquapod.total_garbage_collected += container.container_filled
         container.container_filled = 0
     return aquapod, container
 
 
-@router.post("/{name}/trash-container", response_model=schemas.TrashContainer, status_code=status.HTTP_201_CREATED)
-def add_trash_container_instance(trash_container: schemas.TrashContainerCreate, name: str, db: Session = Depends(get_db)):
+@router.post(
+    "/{name}/trash-container",
+    response_model=schemas.TrashContainer,
+    status_code=status.HTTP_201_CREATED,
+)
+def add_trash_container_instance(
+    trash_container: schemas.TrashContainerCreate,
+    name: str,
+    db: Session = Depends(get_db),
+):
     aquapod = search_aquapod(db, name)
 
     trash_container.aquapod_id = aquapod.id
     trash_container.operational_timestamp = datetime.now()
 
-    new_trash_container = models.TrashContainer(
-        **trash_container.dict())
+    new_trash_container = models.TrashContainer(**trash_container.dict())
 
     new_trash_container = check_container_fullness(new_trash_container)
 
     aquapod, new_trash_container = check_container_emptying(
-        aquapod, new_trash_container)
+        aquapod, new_trash_container
+    )
 
     db.add(new_trash_container)
     db.add(aquapod)  # update the aquapod in the session as well
@@ -332,26 +477,35 @@ def add_trash_container_instance(trash_container: schemas.TrashContainerCreate, 
 
 
 # PUMP
-@router.get("/{name}/pump", response_model=List[schemas.Pump], status_code=status.HTTP_200_OK)
-def get_pump_instances(name: str, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+@router.get(
+    "/{name}/pump", response_model=List[schemas.Pump], status_code=status.HTTP_200_OK
+)
+def get_pump_instances(
+    name: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user),
+):
     aquapod = search_aquapod(db, name)
-    pumps = db.query(models.Pump).filter(
-        models.Pump.aquapod_id == aquapod.id).all()
+    pumps = db.query(models.Pump).filter(models.Pump.aquapod_id == aquapod.id).all()
     if pumps is None or len(pumps) == 0:
         raise HTTPException(
-            status_code=404, detail=f"No pumps for Aquapod '{name}' found!")
+            status_code=404, detail=f"No pumps for Aquapod '{name}' found!"
+        )
     return pumps
 
 
-@router.post("/{name}/pump", response_model=schemas.Pump, status_code=status.HTTP_201_CREATED)
-def add_pump_instance(pump: schemas.PumpCreate, name: str, db: Session = Depends(get_db)):
+@router.post(
+    "/{name}/pump", response_model=schemas.Pump, status_code=status.HTTP_201_CREATED
+)
+def add_pump_instance(
+    pump: schemas.PumpCreate, name: str, db: Session = Depends(get_db)
+):
     aquapod = search_aquapod(db, name)
 
     pump.aquapod_id = aquapod.id
     pump.operational_timestamp = datetime.now()
 
-    new_pump = models.Pump(
-        **pump.dict())
+    new_pump = models.Pump(**pump.dict())
 
     db.add(new_pump)
     db.commit()
@@ -361,57 +515,90 @@ def add_pump_instance(pump: schemas.PumpCreate, name: str, db: Session = Depends
 
 # Pump controls
 
-@router.patch("/{name}/pump/{update_att}", response_model=schemas.Pump, status_code=status.HTTP_200_OK)
-async def update_pump(update: schemas.PumpUpdate, name: str, update_att: str, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+
+@router.patch(
+    "/{name}/pump/{update_att}",
+    response_model=schemas.Pump,
+    status_code=status.HTTP_200_OK,
+)
+async def update_pump(
+    update: schemas.PumpUpdate,
+    name: str,
+    update_att: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user),
+):
     aquapod = search_aquapod(db, name)
 
     # Get the latest pump
-    latest_pump = db.query(models.Pump).filter(models.Pump.aquapod_id == aquapod.id).order_by(
-        models.Pump.operational_timestamp.desc()).first()
+    latest_pump = (
+        db.query(models.Pump)
+        .filter(models.Pump.aquapod_id == aquapod.id)
+        .order_by(models.Pump.operational_timestamp.desc())
+        .first()
+    )
 
     if not latest_pump:
-        raise HTTPException(
-            status_code=404, detail="No pump found for this aquapod")
+        raise HTTPException(status_code=404, detail="No pump found for this aquapod")
 
     # Check if the update attribute is valid
     if update_att not in ["speed", "status"]:
         raise HTTPException(
-            status_code=400, detail="Invalid attribute to update. Allowed attributes are 'speed' and 'status'.")
+            status_code=400,
+            detail="Invalid attribute to update. Allowed attributes are 'speed' and 'status'.",
+        )
 
     # Update the pump attribute and publish the message
     update_value = getattr(update, update_att)
     if update_value is not None:
         setattr(latest_pump, update_att, update_value)
         await call_publish_message_service(
-            f"/aquapods/{name}/pump/{update_att}", update_value)
+            f"/aquapods/{name}/pump/{update_att}", update_value
+        )
 
     db.commit()
     db.refresh(latest_pump)
     return latest_pump
 
+
 # BATTERY
 
 
-@router.get("/{name}/battery", response_model=List[schemas.Battery], status_code=status.HTTP_200_OK)
-def get_battery_instances(name: str, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+@router.get(
+    "/{name}/battery",
+    response_model=List[schemas.Battery],
+    status_code=status.HTTP_200_OK,
+)
+def get_battery_instances(
+    name: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user),
+):
     aquapod = search_aquapod(db, name)
-    batteries = db.query(models.Battery).filter(
-        models.Battery.aquapod_id == aquapod.id).all()
+    batteries = (
+        db.query(models.Battery).filter(models.Battery.aquapod_id == aquapod.id).all()
+    )
     if batteries is None or len(batteries) == 0:
         raise HTTPException(
-            status_code=404, detail=f"No batteries for Aquapod '{name}' found!")
+            status_code=404, detail=f"No batteries for Aquapod '{name}' found!"
+        )
     return batteries
 
 
-@router.post("/{name}/battery", response_model=schemas.Battery, status_code=status.HTTP_201_CREATED)
-def add_batery_instance(battery: schemas.BatteryCreate, name: str, db: Session = Depends(get_db)):
+@router.post(
+    "/{name}/battery",
+    response_model=schemas.Battery,
+    status_code=status.HTTP_201_CREATED,
+)
+def add_batery_instance(
+    battery: schemas.BatteryCreate, name: str, db: Session = Depends(get_db)
+):
     aquapod = search_aquapod(db, name)
 
     battery.aquapod_id = aquapod.id
     battery.operational_timestamp = datetime.now()
 
-    new_battery = models.Battery(
-        **battery.dict())
+    new_battery = models.Battery(**battery.dict())
 
     db.add(new_battery)
     db.commit()
@@ -422,56 +609,86 @@ def add_batery_instance(battery: schemas.BatteryCreate, name: str, db: Session =
 # SOLAR PANEL
 
 
-@router.get("/{name}/solar-panel", response_model=List[schemas.SolarPanel], status_code=status.HTTP_200_OK)
-def get_solar_panel_instances(name: str, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+@router.get(
+    "/{name}/solar-panel",
+    response_model=List[schemas.SolarPanel],
+    status_code=status.HTTP_200_OK,
+)
+def get_solar_panel_instances(
+    name: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user),
+):
     aquapod = search_aquapod(db, name)
-    solar_panels = db.query(models.SolarPanel).filter(
-        models.SolarPanel.aquapod_id == aquapod.id).all()
+    solar_panels = (
+        db.query(models.SolarPanel)
+        .filter(models.SolarPanel.aquapod_id == aquapod.id)
+        .all()
+    )
     if not solar_panels:
         raise HTTPException(
-            status_code=404, detail=f"Solar panels for Aquapod '{name}' not found!")
+            status_code=404, detail=f"Solar panels for Aquapod '{name}' not found!"
+        )
     return solar_panels
 
 
-@router.post("/{name}/solar-panel", response_model=schemas.SolarPanel, status_code=status.HTTP_201_CREATED)
-def add_solar_panel_instance(solar_panel: schemas.SolarPanelCreate, name: str, db: Session = Depends(get_db)):
+@router.post(
+    "/{name}/solar-panel",
+    response_model=schemas.SolarPanel,
+    status_code=status.HTTP_201_CREATED,
+)
+def add_solar_panel_instance(
+    solar_panel: schemas.SolarPanelCreate, name: str, db: Session = Depends(get_db)
+):
     aquapod = search_aquapod(db, name)
 
     solar_panel.aquapod_id = aquapod.id
     solar_panel.operational_timestamp = datetime.now()
 
-    new_solar_panel = models.SolarPanel(
-        **solar_panel.dict())
+    new_solar_panel = models.SolarPanel(**solar_panel.dict())
 
     db.add(new_solar_panel)
     db.commit()
     db.refresh(new_solar_panel)
     return new_solar_panel
 
+
 # ENVIRONMENT
 
 
-@router.get("/{name}/environment", response_model=List[schemas.Environment], status_code=status.HTTP_200_OK)
+@router.get(
+    "/{name}/environment",
+    response_model=List[schemas.Environment],
+    status_code=status.HTTP_200_OK,
+)
 def get_environment_instances(name: str, db: Session = Depends(get_db)):
     aquapod = search_aquapod(db, name)
-    environments = db.query(models.Environment).filter(
-        models.Environment.aquapod_id == aquapod.id).all()
+    environments = (
+        db.query(models.Environment)
+        .filter(models.Environment.aquapod_id == aquapod.id)
+        .all()
+    )
     if not environments:
         raise HTTPException(
-            status_code=404, detail=f"Environments for Aquapod '{name}' not found!")
+            status_code=404, detail=f"Environments for Aquapod '{name}' not found!"
+        )
     return environments
 
 
-@router.post("/{name}/environment", response_model=schemas.Environment, status_code=status.HTTP_201_CREATED)
-def add_environment_instance(environment: schemas.EnvironmentCreate, name: str, db: Session = Depends(get_db)):
-
+@router.post(
+    "/{name}/environment",
+    response_model=schemas.Environment,
+    status_code=status.HTTP_201_CREATED,
+)
+def add_environment_instance(
+    environment: schemas.EnvironmentCreate, name: str, db: Session = Depends(get_db)
+):
     aquapod = search_aquapod(db, name)
 
     environment.aquapod_id = aquapod.id
     environment.operational_timestamp = datetime.now()
 
-    new_environment = models.Environment(
-        **environment.dict())
+    new_environment = models.Environment(**environment.dict())
 
     db.add(new_environment)
     db.commit()

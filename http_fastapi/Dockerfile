@@ -8,6 +8,8 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./app /code/app
 
+COPY ./units.csv /code/units.csv
+
 COPY ./wait-for-postgres.sh /wait-for-postgres.sh
 
 RUN chmod +x /wait-for-postgres.sh

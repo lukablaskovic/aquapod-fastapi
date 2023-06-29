@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
+
 # Schema/Pydantic model defines the structure of a request & response
 
 # AQUAPOD
@@ -41,11 +42,14 @@ class AquaPodWithLatestData(AquaPodBase):
 # UNIT
 
 
-class Unit(BaseModel):
-    id: int
+class UnitCreate(BaseModel):
     name: str
     symbol: str
     description: str
+
+
+class Unit(UnitCreate):
+    id: int
 
     class Config:
         orm_mode = True
@@ -97,6 +101,7 @@ class GPSPosition(BaseModel):
     class Config:
         orm_mode = True
 
+
 # TRASH CONTAINER
 
 
@@ -116,6 +121,7 @@ class TrashContainer(TrashContainerCreate):
 
     class Config:
         orm_mode = True
+
 
 # PUMP
 
@@ -165,6 +171,7 @@ class Battery(BatteryCreate):
     class Config:
         orm_mode = True
 
+
 # SOLAR PANEL
 
 
@@ -185,6 +192,7 @@ class SolarPanel(SolarPanelCreate):
 
     class Config:
         orm_mode = True
+
 
 # ENVIRONMENT
 
@@ -214,6 +222,7 @@ class Environment(EnvironmentCreate):
 
 
 # USER
+
 
 class UserCreate(BaseModel):
     email: EmailStr

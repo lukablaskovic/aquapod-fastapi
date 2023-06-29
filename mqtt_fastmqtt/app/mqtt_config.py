@@ -1,12 +1,11 @@
-CONFIG_PARAMS = dict(
-    host="mqtt.mosquito.org",  # Define your MQTT broker here
-    # LOCAL: host="mqtt.mosquito.org",
+from fastapi_mqtt import MQTTConfig
+
+mqtt_config = MQTTConfig(
+    host="mqtt_broker",  # Define your MQTT broker here,  # LOCAL: host="localhost", # DOCKER: host="mqtt_broker"
     port=1883,
     keepalive=60,  # seconds
     username=None,
-    password=None)
+    password=None,
+)
 
-print(CONFIG_PARAMS)
-
-REST_API_URL = "http://http_fastapi:80"
-# LOCAL: REST_API_URL = "http://localhost:8000"
+REST_API_URL = "http://http_fastapi:80"  # LOCAL: "http://localhost:8000" # DOCKER: "http://http_fastapi:80"
