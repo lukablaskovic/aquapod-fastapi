@@ -102,6 +102,12 @@ docker-compose up -d
   alt="Aquapod docker compose">
 </figure>
 
+
+Finally, explore the interactive REST-API documentation at:   
+```bash
+http://localhost:8000/docs
+```
+
 <hr />
 
 ## 2. Manually
@@ -130,6 +136,11 @@ uvicorn main:app --reload
 - after editing, rename to .env
 
 By default, HTTP_REST_service runs on port 8000.
+
+Explore the interactive REST-API documentation at:   
+```bash
+http://localhost:8000/docs
+```
 
 <hr />
 
