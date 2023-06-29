@@ -23,7 +23,7 @@ This repository comprises three distinct services:
 <figure>
   <img
   src="aquapod_diagram.png?raw=true"
-  alt="Encryption with MQTT.">
+  alt="AquaPod diagram">
 </figure>
 <hr />
 
@@ -50,7 +50,7 @@ The **AquaPod** system is comprised of several elements as depicted in the diagr
 
 # How to run?
 
-## Using Docker compose
+## 1. Using Docker compose
 
 ```bash
 cd http_fastapi
@@ -88,8 +88,6 @@ broker_port = 1883  # Default port for MQTT protocol is 1883
 timeout = 60  # [seconds]
 ```
 
-<hr />
-
 ### Docker compose
 
 Finally, run the following command in root dir:
@@ -98,7 +96,16 @@ Finally, run the following command in root dir:
 docker-compose up -d
 ```
 
-## Manually
+<figure>
+  <img
+  src="aquapod_compose.png?raw=true"
+  alt="Aquapod docker compose">
+</figure>
+
+<hr />
+
+## 2. Manually
+Make sure to set up python 3.9 virtual environment first.
 
 ### Install all the modules first:
 
