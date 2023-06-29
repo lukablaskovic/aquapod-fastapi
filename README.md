@@ -1,4 +1,4 @@
-# 
+#
 
 <div align="center">
   <h1>Aquapod FastAPI</h1>  
@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white" />
 </div>
 
-*AquaPod* is an innovative project designed to address marine pollution by autonomously collecting waste from the sea. This repository hosts the code for the REST API built using *FastAPI*, used to control the AquaPod, as well as fetch sensor and other relevant data.
+_AquaPod_ is an innovative project designed to address marine pollution by autonomously collecting waste from the sea. This repository hosts the code for the REST API built using _FastAPI_, used to control the AquaPod, as well as fetch sensor and other relevant data.
 
 This repository comprises three distinct services:
 
@@ -44,7 +44,7 @@ The **AquaPod** system is comprised of several elements as depicted in the diagr
 **Others:**
 
 - `Cloud CDN`: Assists in the delivery of video content across the system.
-- `MQTT IoT Core Broker`: Manages MQTT messaging for IoT devices. 
+- `MQTT IoT Core Broker`: Manages MQTT messaging for IoT devices.
 
 <hr />
 
@@ -56,7 +56,8 @@ The **AquaPod** system is comprised of several elements as depicted in the diagr
 cd http_fastapi
 ```
 
-### Edit env.docker.template.py
+### Edit env.docker.template
+
 - after editing, rename to .env
 
 ### Edit MQTT config
@@ -77,6 +78,7 @@ mqtt_config = MQTTConfig(
 
 REST_API_URL = "http://http_fastapi:80"
 ```
+
 ### Arduino client
 
 ```python
@@ -89,7 +91,9 @@ timeout = 60  # [seconds]
 <hr />
 
 ### Docker compose
+
 Finally, run the following command in root dir:
+
 ```bash
 docker-compose up -d
 ```
@@ -97,6 +101,7 @@ docker-compose up -d
 ## Manually
 
 ### Install all the modules first:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -113,7 +118,8 @@ cd http_fastapi
 uvicorn main:app --reload
 ```
 
-### Edit env.local.template.py
+### Edit env.local.template
+
 - after editing, rename to .env
 
 By default, HTTP_REST_service runs on port 8000.
@@ -121,9 +127,11 @@ By default, HTTP_REST_service runs on port 8000.
 <hr />
 
 ## FastMQTT_service
+
 The AquaPod, running on Arduino (**Node A**), connects to an MQTT broker and publishes data to it. The FastAPI server (**Node B**), subscribed to the relevant topics on the MQTT broker, receives this data for further processing and use in the application.
 
 ### MQTT broker - Mosquitto
+
 The MQTT protocol operates on a client/server model. The broker (server) is essential as it routes messages between clients based on the topics of messages.
 
 In our project, the AquaPod's Arduino publishes sensor data to an MQTT broker. Our FastMQTT_service, subscribed to the broker, receives this data for further processing.
@@ -137,6 +145,7 @@ cd mqtt_fastmqtt
 ```
 
 ### Edit mqtt_config.py
+
 ```python
 uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 mqtt_config = MQTTConfig(
@@ -149,6 +158,7 @@ mqtt_config = MQTTConfig(
 
 REST_API_URL = "http://localhost:8000"
 ```
+
 <hr />
 
 ## Arduino dummy client
@@ -169,6 +179,7 @@ timeout = 60  # [seconds]
 ```
 
 ### Select main function in arduino-dummy-client.py
+
 ```python
 if __name__ == "__main__":
     main_test_pump_control()
@@ -176,14 +187,17 @@ if __name__ == "__main__":
 ```
 
 ### Run with:
+
 ```python
 python3 arduino-dummy-client.py
 ```
+
 And stop using KeyboardInterrupt.
 
 <hr />
 
 ## Pytest Unit Testing
+
 You can validate the functionality and correctness of the AquaPod's REST API using **pytest**. Running these unit tests ensures that all API endpoints respond as expected and helps to identify any potential issues in the API's behavior.
 
 ### To run the tests:
