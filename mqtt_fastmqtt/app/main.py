@@ -14,6 +14,9 @@ mqtt_config = MQTTConfig(
     password=None
 )
 
+mqtt_config2 = MQTTConfig(**CONFIG_PARAMS)
+
+#assert mqtt_config == mqtt_config2
 
 fast_mqtt = FastMQTT(
     config=mqtt_config

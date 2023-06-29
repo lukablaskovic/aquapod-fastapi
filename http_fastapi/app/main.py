@@ -26,7 +26,7 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"msg": "Hello World!"}
+    return {"msg": "FASTAPI REST API - Running ✅"}
 
 
 app.include_router(aquapod.router)
