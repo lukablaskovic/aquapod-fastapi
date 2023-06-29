@@ -5,15 +5,18 @@
   <img src="https://img.shields.io/badge/fastapi-109989?style=for-the-badge&logo=FASTAPI&logoColor=white" />
   <img src="https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue" />
   <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white" />
 </div>
 
 *AquaPod* is an innovative project designed to address marine pollution by autonomously collecting waste from the sea. This repository hosts the code for the REST API built using *FastAPI*, used to control the AquaPod, as well as fetch sensor and other relevant data.
 
-This repository comprises two distinct services:
+This repository comprises three distinct services:
 
-1. `HTTP_REST_service`: This service interfaces with the AquaPod frontend Vue application. It's responsible for relaying HTTP requests and responses between the Vue application and the FastAPI server.
+1. `http_fastapi`: This service interfaces with the AquaPod frontend Vue application. It's responsible for relaying HTTP requests and responses between the Vue application and the FastAPI server.
 
-2. `FastMQTT_service`: This service communicates with the Arduino onboard the AquaPod boat. It uses the MQTT protocol, a lightweight messaging protocol often used in IoT systems, to send and receive data to and from the Arduino.
+2. `mqtt_fastmqtt`: This service communicates with the Arduino onboard the AquaPod boat. It uses the MQTT protocol, a lightweight messaging protocol often used in IoT systems, to send and receive data to and from the Arduino.
+
+3. `arduino-dummy-client`: This service mimics the functionality of the Arduino onboard the AquaPod boat using the Python-based paho.mqtt package. It's designed to simulate the Arduino's behavior for testing and development purposes without needing actual hardware.
 
 <hr />
 
@@ -47,6 +50,52 @@ The **AquaPod** system is comprised of several elements as depicted in the diagr
 
 # How to run?
 
+## Using Docker compose
+
+```bash
+cd http_fastapi
+```
+
+### Edit env.docker.template.py
+- after editing, rename to .env
+
+### Edit MQTT config
+
+```bash
+cd mqtt_fastmqtt
+```
+
+```python
+uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+mqtt_config = MQTTConfig(
+    host="mqtt_broker",
+    port=1883, # Default
+    keepalive=60,  # seconds
+    username=None,
+    password=None,
+)
+
+REST_API_URL = "http://http_fastapi:80"
+```
+### Arduino client
+
+```python
+# Edit Broker connection settings
+broker_address = "mqtt_broker"
+broker_port = 1883  # Default port for MQTT protocol is 1883
+timeout = 60  # [seconds]
+```
+
+<hr />
+
+### Docker compose
+Finally, run the following command in root dir:
+```bash
+docker-compose up -d
+```
+
+## Manually
+
 ### Install all the modules first:
 ```bash
 pip install -r requirements.txt
@@ -57,27 +106,16 @@ pip install -r requirements.txt
 ### To run the service:
 
 ```bash
-cd HTTP_REST_service
+cd http_fastapi
 ```
 
 ```bash
 uvicorn main:app --reload
 ```
 
-```bash
-### Environment variables:
-Set environment variables inside HTTP_REST_service/.env
+### Edit env.local.template.py
+- after editing, rename to .env
 
-DB_HOSTNAME=fillme
-DB_USERNAME=fillme
-DB_PASSWORD=fillme
-DB_NAME=aquapod
-DB_PORT=fillme
-SECRET_KEY=fillme
-ALGORITHM=fillme
-ACCESS_TOKEN_EXPIRE_MINUTES=fillme
-
-```
 By default, HTTP_REST_service runs on port 8000.
 
 <hr />
@@ -95,14 +133,47 @@ We're using [Mosquitto](https://mosquitto.org/), an open-source MQTT broker. How
 ### To run the MQTT service:
 
 ```bash
-cd FastMQTT_service
+cd mqtt_fastmqtt
 ```
 
+### Edit mqtt_config.py
 ```python
 uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+mqtt_config = MQTTConfig(
+    host="localhost",
+    port=1883, # Default
+    keepalive=60,  # seconds
+    username=None,
+    password=None,
+)
+
+REST_API_URL = "http://localhost:8000"
+```
+<hr />
+
+## Arduino dummy client
+
+You can simulate the AquaPod's movement or pump control using the **arduino-dummy-client.py** script, which is built using the Paho MQTT client.
+
+```bash
+cd arduino_client
 ```
 
-You can simulate the AquaPod's movements using the **arduino-dummy-client.py** script, which is built using the Paho MQTT client. This script publishes a new GPS position every 5 seconds, mimicking real-time data from the AquaPod's movement in the sea.
+### Arduino config
+
+```python
+# Edit Broker connection settings
+broker_address = "localhost"
+broker_port = 1883  # Default port for MQTT protocol is 1883
+timeout = 60  # [seconds]
+```
+
+### Select main function in arduino-dummy-client.py
+```python
+if __name__ == "__main__":
+    main_test_pump_control()
+    # main_test_movement()
+```
 
 ### Run with:
 ```python
@@ -120,6 +191,8 @@ You can validate the functionality and correctness of the AquaPod's REST API usi
 ```bash
 cd Test
 ```
+
+#### Make sure to include the same .env before running the tests
 
 ```python
 pytest
